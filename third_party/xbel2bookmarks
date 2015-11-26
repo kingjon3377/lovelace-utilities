@@ -1,0 +1,423 @@
+#!/usr/bin/env ruby
+#
+# xbel2bookmarks
+# Ruby helper to convert the master bookmarks XBEL file into
+# various formats suitable for different browsers
+#
+# Copyright (c) 2004-2005 Tobias Toedter <t.toedter@gmx.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+
+
+class XBEL2Bookmarks
+	XHTML11HEADER = '<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="MSSmartTagsPreventParsing" content="TRUE" />
+    <title>Debian bookmark collection</title>
+    <style type="text/css">
+    <!--
+      @import url(style.css);
+    -->
+    </style>
+  </head>
+
+  <body>
+    <h1>Debian bookmark collection</h1>'
+
+	XHTML11FOOTER = '
+    <hr />
+    <address>
+      Feel free to mail
+      <a href="mailto:bookmarks@packages.debian.org">Tobias Toedter</a>,
+      if you have any suggestions or corrections.
+    </address>
+  </body>
+</html>'
+
+	MOZILLAHEADER = '<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Debian Bookmarks</TITLE>
+<H1>Debian Bookmarks</H1>
+
+<DL><p>'
+
+	MOZILLAFOOTER = '</DL><p>'
+
+	OPERAHEADER = 'Opera Hotlist version 2.0
+Options: encoding = utf8, version=3
+
+#FOLDER
+        ID=11
+        NAME=Trash
+        TRASH FOLDER=YES
+
+-
+
+'
+
+
+	def initialize(input)
+		@input = input
+		@folders = Array.new
+		read_xbel()
+	end
+
+
+
+	def read_xbel()
+		currfol = -1
+		File.open(@input) do |infile|
+			while (line = infile.gets)
+				if line =~ /^  <folder>/
+					currfol += 1
+					info = Hash.new
+
+					# the next line always contains
+					# the title
+					line = infile.gets
+					line =~ %r{<title>(.*)</title>}
+					info["title"] = $1
+
+					# the third line from here
+					# contains the filename
+					line = infile.gets
+					line = infile.gets
+					line = infile.gets
+					line =~ %r{<filename>(.*)</filename>}
+					info["filename"] = $1
+
+					@folders[currfol] = info
+				elsif line =~ /^    <folder>/
+					links = Array.new
+					info = Hash.new
+
+					# the next line always contains
+					# the title
+					line = infile.gets
+					line =~ %r{<title>(.*)</title>}
+					info["title"] = $1
+
+					# and now for the bookmarks
+					while (line = infile.gets)
+						break if line =~ /<\/folder>/
+						next if line =~ /<\/bookmark>/
+						if line =~ /<bookmark href="(.*)">/
+							href = $1
+							line = infile.gets
+							line =~ /<title>(.*)<\/title>/
+							title = $1
+							links << {"href" => href, "title" => title}
+						end
+					end
+
+					info["links"] = links
+
+					if @folders[currfol]["subjects"].nil?
+						@folders[currfol]["subjects"] = Array.new
+					end
+					@folders[currfol]["subjects"] << info
+				end
+			end
+		end
+	end
+
+
+
+	def get_folders(root)
+		folders = Array.new
+		@folders.each do |folder|
+			if folder["title"] == root
+				folder["subjects"].each do |x|
+					folders << x
+				end
+				break
+			end
+		end
+		return folders
+	end
+
+
+
+	def get_bookmarks(folder, subfolder)
+		bookmarks = Array.new
+		@folders.each do |f|
+			if f["title"] == folder
+				f["subjects"].each do |s|
+					if s["title"] == subfolder
+						s["links"].each do |l|
+							bookmarks << {l["href"] => l["title"]}
+						end
+					end
+				end
+			end
+		end
+		return bookmarks
+	end
+
+
+
+	def xbel2singlehtml(filename)
+		puts "Converting to one single HTML file..."
+		outfile = File.new(filename, "w")
+
+		# output xhtml 1.1 header
+		outfile.puts XHTML11HEADER
+		# output an overview
+		outfile.puts "    <h2>Overview</h2>"
+		outfile.puts "    <ul>"
+		@folders.each do |folder|
+			id = folder["title"].gsub(/ /, "-").gsub(/[()]/, "")
+			outfile.print '      <li><a href="#'+id+'">'
+			outfile.print folder["title"]
+			outfile.puts "</a></li>"
+		end
+		outfile.puts "    </ul>"
+
+		# output the links
+		@folders.each do |folder|
+			id = folder["title"].gsub(/ /, "-").gsub(/[()]/, "")
+			outfile.print '    <h2><a id="'+id+'">'
+			outfile.puts folder["title"]+"</a></h2>"
+			get_folders(folder["title"]).each do |subfolder|
+				outfile.puts "    <h3>"+subfolder["title"]+"</h3>"
+				outfile.puts "    <ul>"
+				get_bookmarks(folder["title"], subfolder["title"]).each do |bm|
+					bm.each do |href, title|
+						outfile.print "      <li><a href=\""
+						outfile.print href+'">'
+						outfile.print title
+						outfile.puts "</a></li>"
+					end
+				end
+				outfile.puts "    </ul>"
+			end
+		end
+
+		# output the footer
+		outfile.puts XHTML11FOOTER
+		outfile.close
+	end
+
+
+
+	def xbel2splithtml(foldername)
+		puts "Converting to different HTML files..."
+		foldername += "/" if foldername[-1] != "/"
+
+		# output an overview
+		outfile = File.new(foldername+"index.html", "w")
+		outfile.puts XHTML11HEADER
+		outfile.puts "    <h2>Overview</h2>"
+		outfile.puts "    <ul>"
+		@folders.each do |folder|
+			outfile.print '      <li><a href="'+folder["filename"]+'">'
+			outfile.print folder["title"]
+			outfile.puts "</a></li>"
+		end
+		outfile.puts "    </ul>"
+		outfile.puts XHTML11FOOTER
+		outfile.close
+
+		# output all links in separate files
+		@folders.each do |folder|
+			outfile = File.new(foldername+folder["filename"], "w")
+			outfile.puts XHTML11HEADER
+			outfile.puts '    <h2>'+folder["title"]+"</h2>"
+
+			# output the links
+			get_folders(folder["title"]).each do |subfolder|
+				outfile.puts "    <h3>"+subfolder["title"]+"</h3>"
+				outfile.puts "    <ul>"
+				get_bookmarks(folder["title"], subfolder["title"]).each do |bm|
+					bm.each do |href, title|
+						outfile.print "      <li><a href=\""
+						outfile.print href+'">'
+						outfile.print title
+						outfile.puts "</a></li>"
+					end
+				end
+				outfile.puts "    </ul>"
+			end
+
+			# output the footer
+			outfile.puts XHTML11FOOTER
+			outfile.close
+		end
+	end
+
+
+
+	def xbel2mozilla(filename)
+		puts "Converting to Mozilla format..."
+		outfile = File.new(filename, "w")
+		date = `date +%s`.chomp
+
+		# output header
+		outfile.puts MOZILLAHEADER
+		# output the links
+		@folders.each do |folder|
+			outfile.print '    <DT><H3 ADD_DATE="'+date+'" LAST_MODIFIED="'+date+'">'
+			outfile.puts folder["title"]+"</H3>"
+			outfile.puts "    <DL><p>"
+			get_folders(folder["title"]).each do |subfolder|
+				outfile.puts '        <DT><H3 ADD_DATE="'+date+'" LAST_MODIFIED="'+date+'">'+subfolder["title"]+"</H3>"
+				outfile.puts "        <DL><p>"
+				get_bookmarks(folder["title"], subfolder["title"]).each do |bm|
+					bm.each do |href, title|
+						outfile.print "            <DT><A HREF=\""
+						outfile.print href+'" ADD_DATE="'+date+'">'
+						outfile.print title
+						outfile.puts "</A>"
+					end
+				end
+				outfile.puts "        </DL><p>"
+			end
+			outfile.puts "    </DL><p>"
+		end
+
+		# output the footer
+		outfile.puts MOZILLAFOOTER
+		outfile.close
+	end
+
+
+
+	def xbel2opera(filename)
+		puts "Converting to Opera format..."
+		outfile = File.new(filename, "w")
+		cntid = 12
+
+		# output header
+		outfile.puts OPERAHEADER
+		# output the links
+		@folders.each do |folder|
+			outfile.puts '#FOLDER'
+			outfile.puts "\tID=#{cntid}"
+			outfile.puts "\tNAME="+folder["title"]
+			outfile.puts
+			cntid += 1
+			get_folders(folder["title"]).each do |subfolder|
+				outfile.puts "#FOLDER"
+				outfile.puts "\tID=#{cntid}"
+				outfile.puts "\tNAME="+subfolder["title"]
+				outfile.puts
+				cntid += 1
+				get_bookmarks(folder["title"], subfolder["title"]).each do |bm|
+					bm.each do |href, title|
+						outfile.puts "#URL"
+						outfile.puts "\tID=#{cntid}"
+						outfile.puts "\tNAME=#{title}"
+						outfile.puts "\tURL=#{href}"
+						outfile.puts
+						cntid += 1
+					end
+				end
+				outfile.puts "-"
+				outfile.puts
+			end
+			outfile.puts "-"
+			outfile.puts
+		end
+		outfile.close
+	end
+
+
+
+	def xbel2check(filename)
+		puts "Converting to one single text file for link checking..."
+		outfile = File.new(filename, "w")
+
+		# output the links
+		@folders.each do |folder|
+			get_folders(folder["title"]).each do |subfolder|
+				get_bookmarks(folder["title"], subfolder["title"]).each do |bm|
+					bm.each do |href, title|
+						outfile.print folder["title"]+"\t"
+						outfile.print subfolder["title"]+"\t"
+						outfile.puts href
+					end
+				end
+			end
+		end
+		outfile.close
+	end
+end
+
+
+def usage
+	puts <<END_OF_USAGE
+This program converts the XML Bookmark Exchange Language (XBEL) file
+to bookmark files for Konqueror, Opera, Lynx, and Mozilla browsers.
+
+It is used internally to provide all files ready-made, so currently
+there's only very minimal error checking. There are three options,
+all of them are required.
+
+  --format   Select output type
+  --output   Select output file
+  --input    Select input file
+
+Known output types are:
+  singlehtml
+    Puts all links into one single XHTML 1.1 file, usable by all
+    browsers
+  splithtml
+    Puts links into different XHTML 1.1 files, sorted by sections
+  mozilla
+    Puts all links into a file readable by mozilla based browsers
+    (for example Mozilla, Netscape Navigator & Communicator,
+    Epiphany, etc.)
+  opera
+    Puts all links into a bookmarks file for Opera
+END_OF_USAGE
+	exit
+end
+
+
+
+# get the command line options
+input = format = output = nil
+ARGV.each do |arg|
+	if arg =~ /--format=(.*)/
+		format = $1
+	elsif arg =~ /--output=(.*)/
+		output = $1
+	elsif arg =~ /--input=(.*)/
+		input = $1
+	else
+		usage
+	end
+end
+
+usage if format.nil? or output.nil? or input.nil?
+
+convert = XBEL2Bookmarks.new(input)
+case format
+	when "singlehtml" then convert.xbel2singlehtml(output)
+	when "splithtml" then convert.xbel2splithtml(output)
+	when "mozilla" then convert.xbel2mozilla(output)
+	when "opera" then convert.xbel2opera(output)
+	when "check" then convert.xbel2check(output)
+	else puts "Unknown format"
+end

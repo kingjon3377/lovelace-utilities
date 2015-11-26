@@ -1,0 +1,3 @@
+#!/bin/sh
+find /home -newer ~/.timestamp -print 2>/dev/null | less
+touch ~/.timestamp

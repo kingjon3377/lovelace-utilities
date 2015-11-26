@@ -1,0 +1,214 @@
+#!/bin/sh
+#
+# A shell script to automatically fetch all videos in a YT playlist.
+# Copyright © 2008-2009 Kai Wasserbäch <kai@dev.carbon-project.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# NOTE:
+#   This script was written with Debian testing (Squeeze) in mind. Therefore
+#   if you're instructed to install bsdmainutils, you just need to invoke
+#   »{apt-get,aptitude} install bsdmainutils« to get the required programs
+#   or version (maybe you need to update your package lists first). But if
+#   you run this script on another distribution you need to figure out in which
+#   package the required program is.
+#   Furthermore it might be the case, that something that is installd on all
+#   Debian systems is not by other distributions. In this case the script will
+#   fail misrably because I've just added checks for non-essential Debian
+#   packages.
+#
+
+# functions
+usage() {
+    printf "%s [PLAYLIST URL]\n" "${0}"
+    printf "\t[PLAYLIST URL]\tAn URL pointing to a YouTube playlist.\n"
+    printf "\t\t\tMUST contain a »p« parameter!\n"
+    printf "\t\t\tThe script knows three formats:\n"
+    printf "\t\t\t1. Classic: youtube.com/view_play_list?p=[PLAYLISTID]\n"
+    printf "\t\t\t2. Embedded: youtube.com/p/[PLAYLISTID]\n"
+    printf "\t\t\t3. User page: youtube.com/user/[USERNAME]#([gp]|grid)/(c|user)/[PLAYLISTID]\n"
+    printf "\n\t\t\t[PLAYLISTID] is a 16 character string containing chars\n"
+    printf "\t\t\tand digits.\n\n"
+}
+
+version() {
+    printf "YTPlaylistFetcher  Copyright © 2008-2009 Kai Wasserbäch"
+    printf " <kai@dev.carbon-project.org>\n"
+    printf "Version: 0.1.0 (SVN \$Rev: 46 \$)\n"
+    printf "This program comes with ABSOLUTELY NO WARRANTY.\n"
+    printf "This is free software, and you are welcome to redistribute it under\n"
+    printf "certain conditions (GPLv3); see <http://www.gnu.org/licenses/> for "
+    printf "details.\n\n"
+}
+
+envCheck() {
+    printf "Checking environment...\n"
+
+    # colrm
+    if which colrm > /dev/null
+    then
+            printf "\tcolrm:\tOK.\n"
+    else
+            printf "\tcolrm:\tNot found, please install »bsdmainutils«\n"
+            exit 1
+    fi
+
+    # mktemp
+    if which mktemp > /dev/null
+    then
+            printf "\tmktemp:\tOK.\n"
+    else
+            printf "\tmktemp:\tNot found, please install »mktemp«\n"
+            exit 1
+    fi
+
+    # clive
+    CLIVE_VERSION=$(mktemp "${0##*/}".XXXXXX) || exit 1
+    if which clive > /dev/null && \
+            [ "$(clive --version | sed -nre'/^clive( version)? [\.0-9]+/p' | \
+            sed -re's/^(clive( version)? )([\.0-9]+).*/\3/' | \
+            tee "${CLIVE_VERSION}" | cut -f1 -d.)" -ge 2 ]
+    then
+            printf "\tclive:\tOK, version %s\n" "$(cat "${CLIVE_VERSION}")"
+    else
+            printf "\tclive:\tNot found or version too old (version 2 required),\n"
+            printf "\t\tplease install or update clive.\n"
+            exit 1
+    fi
+    rm -f "${CLIVE_VERSION}"
+
+    # lynx
+    if which lynx > /dev/null
+    then
+            printf "\tlynx:\tOK.\n"
+            LYNXBIN=$(which lynx)
+    else
+            printf "\tlynx:\tNot found, please install »lynx-cur«\n"
+            exit 1
+    fi
+
+    printf "\n"
+}
+
+parseURL() {
+    # There are three formats for playlist IDs (AFAIK).
+    # 1. Classic format: http://www.youtube.com/view_play_list?p=[PLAYLISTID]
+    # 2. Embedded format: http://www.youtube.com/p/[PLAYLISTID]
+    # 3. User page format: http://www.youtube.com/user/[USERNAME]#([gp]/c)|(grid/user)/[PLAYLISTID]
+    #
+    # We try to extract the PLAYLISTID from any of them and find it in any string in the
+    # first place. If finds actually every 16 character string matching [0-9a-zA-Z] after a »p=«,
+    # a »/p/«, »#g/c/«, »#p/c/« or »#grid/user/« (ok and the other variations of the last three
+    # examples). I think this is the simplest approach, as this helps also coping with additional
+    # parameters.
+
+    PLAYLISTID=$(echo "${1}" | sed -nre'/(p=|\/p\/|#([gp]|grid)\/(c|user)\/)[0-9a-zA-Z]{16}/p' | \
+        sed -re's/^(.*)(p=|\/p\/|#([gp]|grid)\/(c|user)\/)([0-9a-zA-Z]{16})(.*)$/\5/g')
+
+    # if nothing is left, we didn't get a correct URL
+    if [ "x${PLAYLISTID}" = "x" ]
+    then
+            printf "ERROR: You need to enter a YouTube playlist url"
+            printf " containing the »p« parameter.\n\n"
+            usage
+            exit 1
+    fi
+
+    ERRORBOX=$("${LYNXBIN}" -source "http://www.youtube.com/view_play_list?p=${PLAYLISTID}" | \
+        grep .errorBox.)
+    if [ "x${ERRORBOX}" != "x" ]
+    then
+            printf "ERROR: The specified YouTube playlist does not exist.\n\n"
+            usage
+            exit 1
+    fi
+    
+    # else we should have the ID to work with
+    printf "Preparing to fetch videos in the playlist with ID %s\n" "${PLAYLISTID}"
+}
+
+fetchVIDFromPage() {
+    URL="http://www.youtube.com/view_play_list?p=${PLAYLISTID}&page=${COUNTER}"
+
+    printf "\tFetching IDs from page %d...\n" ${COUNTER}
+    VIDEOS=$("${LYNXBIN}" -dump -listonly "${URL}" | grep .watch\?. | \
+        sed 's/\(v=[_0-9a-zA-Z\-]\+\).*/\1/g' | colrm 1 6 | uniq | \
+        tee -a ${TMPFILE} | wc -l)
+    printf "\t\tFound %d unique video IDs.\n" "${VIDEOS}"
+}
+
+getVideoIDs() {
+    # first we want a temporary file
+    TMPFILE=$(mktemp ytplaylistfetcher.XXXXXX) && {
+    
+    # because YT spreads videos over multiple pages, we should check how often
+    # we need to run
+    VIDTOTAL=$("${LYNXBIN}" -dump "http://www.youtube.com/view_play_list?p=${PLAYLISTID}" \
+                | grep '.Videos\:.' | tr -d '[:blank:]' | cut -d: -f2)
+
+    # When YT is slow (e.g. after they come back from maint. mode), it can
+    # happen, that we don't get anything. check that and error out.
+    if [ "x${VIDTOTAL}" = "x" ]
+    then
+            printf "ERROR:\tCouldn't retreive playlist page! Probably YT is too \n"
+            printf "\tslow at the moment. You should try later again.\n"
+            exit 2
+    fi
+
+    PAGECOUNT=$(( VIDTOTAL / 20))
+    if [ $((VIDTOTAL % 20)) -ne 0 ]
+    then
+            PAGECOUNT=$((PAGECOUNT + 1))
+    fi
+
+    printf "\tGoing to fetch video IDs for %d videos. This number might be wrong, if \n" "${VIDTOTAL}"
+    printf "\tvideos were removed from YouTube. They still show up in playlists.\n"
+    printf "\tThis may take a while.\n"
+
+    COUNTER=1
+    while [ ${COUNTER} -le ${PAGECOUNT} ]
+    do
+            fetchVIDFromPage
+            COUNTER=$((COUNTER + 1))
+    done
+
+    printf "\n"
+    }
+}
+
+# the script starts here...
+version
+
+# input check: we need exactly ONE parameter, if we have less or more, something
+# is broken.
+if [ ${#} -ne 1 ]
+then
+        usage
+        exit 1
+elif [ "x${1}" = "x--help" ]
+then
+        usage
+        exit 0
+fi
+
+envCheck
+parseURL "${1}"   # we need to pass the parameter on (scope)
+getVideoIDs
+
+# now we pass the list of videos to clive
+printf "Invoking clive to download the videos...\n"
+clive < "${TMPFILE}"
+
+# make sure we do not leave stuff around
+rm -f "${TMPFILE}"

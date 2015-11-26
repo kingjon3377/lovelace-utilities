@@ -1,0 +1,13 @@
+#! /bin/sh
+#
+###	lensort - sort by line length
+###	Usage: lensort [files]
+
+# print each line's length, a TAB and then the actual line
+awk '{ printf "%d\t%s\n", length($0), $0 }' |
+
+# Sort the lines numerically
+sort +0n -1 |
+
+# Remove the length and the TAB and print each line
+sed 's/^[0-9][0-9]*	//'

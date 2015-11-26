@@ -1,0 +1,3 @@
+#!/bin/sh
+exec wpd2html "$1" | lynx -stdin
+

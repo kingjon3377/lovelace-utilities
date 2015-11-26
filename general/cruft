@@ -1,0 +1,1189 @@
+#!/bin/bash
+# vi: set ai ts=4 sw=4 :
+# Copyright (c) Ed Catmur 2004 <ed@catmur.co.uk>
+#
+# Licensed under the GNU Public License, version 2.
+#
+# ChangeLog bit:
+#
+#		* fix /tmp symlink vuln (now directs output to . or ~)
+#
+# 0.0.13 "Miniature Guide Horse"
+#
+#		* the mysterious past
+
+PROG="cruft"
+DESC="clean your filesystem"
+VERSION=0.0.13
+TAG="Miniature Guide Horse"
+
+shopt -s extglob
+
+#Set up colors
+NO=$'\x1b[0;0m'
+BR=$'\x1b[0;01m'
+RD=$'\x1b[31;01m'
+GR=$'\x1b[32;01m'
+YL=$'\x1b[33;01m'
+BL=$'\x1b[34;01m'
+FC=$'\x1b[35;01m'
+CY=$'\x1b[36;01m'
+COLUMNS=${COLUMNS:-80}
+spaces=$(for ((i=0;i<COLUMNS;++i)); do echo -n " "; done)
+
+function print_help() {
+	cat <<END
+
+${CY}${PROG} ${NO}v. ${BL}${VERSION} "${TAG}"${NO}
+    ${RD}${DESC}!${NO}
+	
+Over time, any system builds up ${BR}cruft${NO} - files and directories that don't belong
+to ${YL}any${NO} package. ${CY}${PROG}${NO} tries to list all the cruft on a system with as few as
+possible ${RD}false positives${NO} to help you keep your system in good working order.
+It helps if your system obeys the ${BR}FHS${NO} (${BL}http://www.pathname.com/fhs/${NO}).
+Note that plenty of packages drop extra files all over the place; mistakes will 
+be made. You can use the accompanying ${CY}cruft-blame${NO} to find culprits.
+Currently ${CY}${PROG}${NO} contains ${GR}$(($(sed -n '/^prune_list()/,/^}/p; /^prune_files()/,/^}/p' "${0}" | sed '/[[:space:]]*#/d' | wc -l) - 4))${NO} lines of rules. Please contribute any rules that 
+help eliminate false positives on your system!
+
+${BL}Usage${NO}: 	${FC}${PROG}${NO}
+	${FC}${PROG} [ --refine ] | gvim -R -${NO}
+Best run as root, to ensure you have read access to all corners of the system.
+Needs ~20MB for file lists in ${YL}~/.cruft${NO} - these are left behind after running ${CY}${PROG}${NO}, 
+to aid analysis and development.
+         ${spaces:1:30}${FC}  ____   __   __  _/"\_  ___   ___   ${NO}
+Have fun!${spaces:1:30}${FC} / _  \ / ,\ /  \|_   _|/ _ \ / _ \  ${NO}
+         ${spaces:1:30}${FC} \_   //  _// /\ \ | | | |_| | |_| | ${NO}
+         ${spaces:1:30}${FC} /   / \___\|/  \_|| |  \___/ \___/  ${NO}
+         ${spaces:1:30}${FC} \__/              |_|               ${NO}
+END
+}
+
+while getopts ":h-" OPT; do
+	case $OPT in
+		h | \? ) 
+		print_help
+		exit;;
+		-)
+		break;;
+	esac
+done
+
+# TODO split this into common libportage.sh package
+
+function car() { echo "$1"; }
+function cdr() { shift; echo "$@"; }
+function abl() { echo "${@:1:$((${#}-1))}"; }
+
+function has() {
+	a="$1"; shift
+	for x in "${@}"; do
+		[[ "${x}" == "${a}" ]] && return 0
+	done
+	return 1
+}
+
+function grab_setting() {
+	name="$1"; default="$2"
+	[[ "${!name+ISSET}" ]] && return
+	export $name="$(
+	eval $name="$default"
+	[[ -r /etc/make.globals ]] \
+	&& source /etc/make.globals
+	[[ -r "${PORTDIR-/usr/portage}/profiles/base/make.defaults" ]] \
+	&& source "${PORTDIR-/usr/portage}/profiles/base/make.defaults"
+	[[ -r /etc/make.profile/make.defaults ]] \
+	&& source /etc/make.profile/make.defaults
+	[[ -r /etc/make.conf ]] \
+	&& source /etc/make.conf
+	echo "${!name}"
+	)"
+}
+
+grab_setting PORTDIR /usr/portage
+grab_setting DISTDIR "${PORTDIR}/distfiles"
+grab_setting PKGDIR "${PORTDIR}/packages"
+grab_setting PORT_LOGDIR /var/log/portage
+grab_setting PORTDIR_OVERLAY /usr/local/portage
+grab_setting PORTAGE_TMPDIR /var/tmp
+grab_setting CCACHE_DIR "${PORTAGE_TMPDIR}/ccache"
+
+grab_setting CHOST i386-pc-linux-gnu
+grab_setting ARCH x86
+grab_setting ACCEPT_KEYWORDS "${ARCH}"
+
+# Version specifier: 
+# 	([[:digit:]]+.)*[[:digit:]]+[[:lower:]]?(_(alpha|beta|pre|rc|p)[[:digit:]]*)?(-r[[:digit:]]+)?
+# as: 	(...,mega,macro),major,(minor,micro,nano,...),(letter),(status(number)),(ebuild revision) 
+# e.g. 3.57.2.20030722c_beta37-r12
+VER_SHPAT="*(+([[:digit:]]).)+([[:digit:]])?([[:lower:]])?(_@(alpha|beta|pre|rc|p)*([[:digit:]]))?(-r+([[:digit:]]))"
+VER_REGEXP="\([[:digit:]]\+.\)*[[:digit:]]\+[[:lower:]]\?\(_\(alpha\|beta\|pre\|rc\|p\)[[:digit:]]*\)\?\(-r[[:digit:]]\+\)\?"
+
+function cpvr_to_v() {
+	cpvr="$1"
+	cp="${cpvr%-${VER_SHPAT}}"
+	mlsr="${cpvr#${cp}-}"
+	echo "${mlsr%-r+([[:digit:]])}"
+}
+
+# Compare version specifiers s1, s2. Returns <0, 0, >0 if s1 is resp lower, 
+# equal, higher than s2. Note that <0 actually means >127 (-1 -> 255, etc)
+# 0: equal; 1: differ in rev; 2: differ in status number; 3: differ in status;
+# 4: differ in letter; 5: differ in mmm length; 6: differ in mmm
+# status code number: alpha->0, beta->1, pre->2, rc->3, (none)->4, p->5
+function comm_ver() {
+	s1_mlsr="$1"; s2_mlsr="$2"
+	[[ "$s1_mlsr" == "$s2_mlsr" ]] && return 0
+	s1_mls="${s1_mlsr/%-r+([[:digit:]])}"; s1_r="${s1_mlsr#${s1_mls}}"
+	s1_ml="${s1_mls/%_@(alpha|beta|pre|rc|p)*([[:digit:]])}"
+	s1_s="${s1_mls#${s1_ml}}"; s1_sc="${s1_s/%*([[:digit:]])}"
+	s1_scn="$((5-${#s1_sc}))";[[ $s1_scn -ge 4 ]] && s1_scn=$((9-s1_scn))
+	s1_sn="${s1_s#${s1_sc}}"; s1_m="${s1_ml/%[[:lower:]]}"
+	s1_l="${s1_ml#${s1_m}}"; s1_m=( ${s1_m//./ } )
+	s2_mls="${s2_mlsr/%-r+([[:digit:]])}"; s2_r="${s2_mlsr#${s2_mls}}"
+	s2_ml="${s2_mls/%_@(alpha|beta|pre|rc|p)*([[:digit:]])}"
+	s2_s="${s2_mls#${s2_ml}}"; s2_sc="${s2_s/%*([[:digit:]])}"
+	s2_scn="$((5-${#s2_sc}))";[[ $s2_scn -ge 4 ]] && s2_scn=$((9-s2_scn))
+	s2_sn="${s2_s#${s2_sc}}"; s2_m="${s2_ml/%[[:lower:]]}"
+	s2_l="${s2_ml#${s2_m}}"; s2_m=( ${s2_m//./ } )
+	for ((i=0; i<${#s1_m[@]}; ++i)); do
+		[[ "${s2_m[$i]}" ]] || return 5
+		[[ "${s1_m[$i]}" -lt "${s2_m[$i]}" ]] && return -6
+		[[ "${s1_m[$i]}" -gt "${s2_m[$i]}" ]] && return 6
+	done
+	[[ "${#s1_m[@]}" -lt "${#s2_m[@]}" ]] && return -5
+	[[ "$s1_l" < "$s2_l" ]] && return -4
+	[[ "$s1_l" > "$s2_l" ]] && return 4
+	[[ "$s1_scn" < "$s2_scn" ]] && return -3
+	[[ "$s1_scn" > "$s2_scn" ]] && return 3
+	[[ "$s1_sn" < "$s2_sn" ]] && return -2
+	[[ "$s1_sn" > "$s2_sn" ]] && return 2
+	[[ "${s1_r:2}" < "${s2_r:2}" ]] && return -1
+	[[ "${s1_r:2}" > "${s2_r:2}" ]] && return 1
+	echo "Error! comm_ver failed $1 $2" >&2
+	exit 128	# should not reach here
+}
+
+function all_versions() {
+	pkgspec="$1"
+	if [[ "$pkgspec" == virtual/* ]]; then
+		ret="$(grep "${pkgspec}" /var/db/pkg/*/*/PROVIDE | sed 's!/var/db/pkg/\(.*\)/PROVIDE:.*!\1!')"
+		[[ "$ret" ]] || return 1
+		echo "$ret"; return 0
+	fi
+	# (<|<=|=|~|>=|>)?category/package(-version)?*?
+	case "$pkgspec" in
+		\<=*) vs="<=";pkgspec="${pkgspec:2}";;
+		\<*)  vs="<"; pkgspec="${pkgspec:1}";;
+		=*)   vs="="; pkgspec="${pkgspec:1}";;
+		\~*)  vs="~"; pkgspec="${pkgspec:1}";;
+		\>=*) vs=">=";pkgspec="${pkgspec:2}";;
+		\>*)  vs=">"; pkgspec="${pkgspec:1}";;
+		*)    vs=""
+	esac
+	arr=()
+	case "$vs" in
+		=)  arr=( /var/db/pkg/$pkgspec );;
+		\~) arr=( /var/db/pkg/${pkgspec}?(-r+([[:digit:]])) );;
+		"") arr=( /var/db/pkg/${pkgspec}-$VER_SHPAT );;
+		*)  
+		cp="${pkgspec/%-$VER_SHPAT}"; verstring_req="${pkgspec#${cp}-}"
+		arr=( /var/db/pkg/${cp}-$VER_SHPAT )
+	esac
+	[[ -d "${arr}" ]] || return 1
+	arr_cpv=()
+	if [[ "$vs" == [\>\<]?(=) ]]; then
+		for inst in "${arr[@]}"; do
+			verstring_inst="${inst#/var/db/pkg/${cp}-}"
+			comm_ver "${verstring_inst}" "${verstring_req}"; x=$?
+			[[ ( $x -eq 0 && "${vs:1}" == "=" ) \
+			|| ( $x -ge 128 && "${vs:0:1}" == "<" ) \
+			|| ( $x -gt 0 && "${vs:0:1}" == ">" ) ]] \
+			&& arr_cpv=( "${arr_cpv[@]}" "${cp}-${verstring_inst}" )
+		done
+	else
+		for inst in "${arr[@]}"; do
+			arr_cpv=( "${arr_cpv[@]}" "${inst#/var/db/pkg/}" )
+		done
+	fi
+	if [[ "${#arr_cpv[@]}" -gt 0 ]]; then
+		echo "${arr_cpv[@]}"
+		return 0
+	else
+		return 1
+	fi
+}
+
+function has_use() {
+	cpv="$1"; use="$2"
+	if [[ "$use" == -* ]]; then
+		! has "${use#-}" $(<"/var/db/pkg/$cpv/USE"); return
+	else
+		has "${use}" $(<"/var/db/pkg/$cpv/USE"); return
+	fi
+}
+
+function has_version() {
+	pkgspec="$1"; slot="$2"; use="$3"
+	for cpv in $(all_versions "$pkgspec"); do
+		if [[ -z "$slot" || "$(<"/var/db/pkg/$cpv/SLOT")" == "$slot" ]];
+		then
+			if [[ -z "$use" ]] || has_use "$cpv" "$use"; then
+				return 0
+			fi
+		fi
+	done
+	return 1
+}
+
+function bestof() {
+	[[ "$*" ]] || return 1
+	best=""
+	for x in "$@"; do
+		cpvr="${x#/var/db/pkg/}"
+		cp="${cpvr/%-$VER_SHPAT}"
+		ver="${cpvr#${cp}-}"
+		if [[ "${best}" ]]; then 
+			comm_ver "${ver}" "${ver_best}"
+			[[ $? -gt 0 && $? -lt 128 ]] || continue
+		fi
+		best="${cpvr}"
+		cp_best="${cp}"
+		ver_best="${ver}"
+	done
+	echo "${best}"
+}
+
+function best_version() {
+	all="$(all_versions "$1")" && bestof $all
+}
+
+# comma-separated e.g. eth0,eth1,ppp0,lo
+interfaces=$(for service in /etc/init.d/net.*; do echo -n ${service##*.},; done)
+interfaces=${interfaces%,}
+users=$(awk -F: '{ printf $1 "," }' /etc/passwd)
+users=${users%,}
+
+PYVER_ALL="$(python -V 2>&1 | cut -d' ' -f2)"
+PYVER_MAJOR=$(echo "${PYVER_ALL}" | cut -d. -f1)
+PYVER_MINOR=$(echo "${PYVER_ALL}" | cut -d. -f2)
+PYVER_MICRO=$(echo "${PYVER_ALL}" | cut -d. -f3-)
+PYVER="${PYVER_MAJOR}.${PYVER_MINOR}"
+
+NS_PLUGINS_DIR="$(sed 's/^PLUGINS_DIR="\(.*\)"$/\1/;t;d' "${PORTDIR}/eclass/nsplugins.eclass")"
+function nsplugin() {
+	for MYFILE in "${@}"; do
+		echo "/usr/lib/${NS_PLUGINS_DIR}/${MYFILE}"
+	done
+}
+
+function fontdir() {
+	for MYDIR in "${@}"; do
+		if [[ "$MYDIR" == /* ]]; then
+			echo "${MYDIR}"/{fonts.{cache-1,dir,list,scale},encodings.dir,Fontmap}
+		elif [[ "${MYDIR}" ]]; then
+			fontdir "/usr/share/fonts/${MYDIR}"
+			fontdir "${MYDIR%/*}"
+		else
+			fontdir /usr/share/fonts
+		fi
+	done
+}
+
+function motif-profile() {
+	echo "/usr/lib/motif/${1}"
+	echo "/etc/env.d/15${1}"
+	echo /usr/share/man/man5/Traits.5.gz
+}
+
+JAVA_PROVIDES="dev-java/blackdown-jdk dev-java/blackdown-jre dev-java/ibm-jdk dev-java/ibm-jre dev-java/kaffe dev-java/sun-j2ee dev-java/sun-j2sdk dev-java/sun-jdk dev-java/sun-jre"
+function has_java() {
+	for java in ${JAVA_PROVIDES}; do
+		[[ "$java" == *"$1"* ]] && has_version "${java}" && return 0
+	done
+	return 1
+}
+
+function has_eclass() {
+	grep -q '\<'"$1"'\>' /var/db/pkg/*/*/INHERITED
+}	
+
+function has_initscript() {
+	[[ -h "/var/lib/init.d/started/$1" ]]
+}
+
+function XPIApp() {
+	[[ "$#" -gt 1 ]] && for x in "${@:2}"; do XPIApp "$x"; done
+	path="$1"
+	[[ "$path" != /* ]] && path="/usr/lib/$path"
+	[[ "$path" == */ ]] && path="${path%/}"
+	echo "$path"/{chrome/{chrome.rdf,overlayinfo},components/{compreg.dat,xpti.dat},components.ini,chrome,extensions,install.log,searchplugins}
+}
+
+function expandpathsea() {
+	# see mktexlsr(1), <http://tug.org/teTeX>
+	[[ "$#" -gt 1 ]] && for x in "${@:2}"; do expandpathsea "$x"; done
+	lsR="$1"; path="${lsR%/*}"
+	[[ -r "$lsR" ]] || return
+	sed -e '/^$/d;/^%/d;/:$/{s/:$//;h;d};G;s:\(.*\)\n\(.*\):\2/\1:;s://:/:;s:^./::;/^$/d;ta;:a;p;s:/[^/]*$::;ta;d' "$lsR" \
+	| sort -u | sed -e 's:^:'"${path//:/\:}"'/:'
+}
+
+ROOT="/"
+PRUNE=""
+
+prune_list() {
+# Files and directory trees to omit, ordered alphabetically.
+# If a package drops files or directories in more than one place, move its
+# definitions to the appropriate stanza. ldconfig symlinks go in the last 
+# stanza. Put large lists of single files next to the CONTENTS listing code.
+# Useful documents:
+# 	http://www.pathname.com/fhs/
+#	http://www.tug.org/tds/
+
+# Items not part of a Gentoo Linux system
+PRUNE_FHS="
+	/boot
+	/etc/opt
+	/media
+	/mnt
+	/opt
+	/srv
+	/tmp
+	/usr/opt
+	/usr/src
+	/var/opt
+	/var/tmp
+"
+
+# Web applications and data
+# As per GLEP 11: http://www.gentoo.org/proj/en/glep/glep-0011.html
+# Would like to make this more accurate.
+# Hopefully Gentoo will change to /srv/www someday to comply with FHS 2.3.
+PRUNE_WWW="
+	/var/www
+"
+
+# Things belonging to users
+PRUNE_USERS="
+	/home
+	/root
+	$(eval echo /var/spool/cron/crontabs/{${users}})
+	$(eval echo /var/spool/mail/{${users}})
+"
+
+# Local files
+PRUNE_LOCAL="
+	/etc/init.d/local
+	/usr/local
+	/usr/share/applications/local
+	/usr/share/control-center-2.0/capplets/local
+	/usr/share/faces
+	/usr/share/fonts/local
+	/usr/share/pixmaps/local
+	/usr/share/sounds/local
+"
+
+# Admin-managed data and resources (files needed to regenerate a system)
+PRUNE_ADMIN="
+	$(echo /etc/cron.{hourly,daily,weekly,monthly,allow,deny})
+	/etc/dnsdomainname
+	/etc/fstab
+	/etc/group	/etc/group-
+	/etc/gshadow	/etc/gshadow-
+	/etc/hostname
+	$(echo /etc/hosts{,.{allow,deny,equiv}})
+	$(echo /etc/issue{,.net})
+	$(echo /etc/make.{conf,profile})
+	/etc/localtime
+	/etc/motd
+	/etc/passwd	/etc/passwd-
+	/etc/portage
+	/etc/runlevels
+	/etc/shadow	/etc/shadow-
+	/etc/skel
+	/etc/xprofile
+	/var/lib/portage
+"
+
+# Kernel and console
+PRUNE_NOOWNER="
+	/etc/mtab
+	/proc
+	/sys
+	/var/log/dmesg
+
+	$(eval echo /var/run/console/{${users}})
+	/var/run/console/console.lock
+"
+
+PRUNE="${PRUNE}
+$(has_version media-sound/esound	&& echo "/.esd_auth")
+$(has_version x11-base/xorg-x11		&& echo "/.fonts.cache-1")
+$(has_version sys-apps/hal			&& echo /etc/.fstab.hal.{1,i})
+$(has_java			        		&& echo "/etc/.java")
+$(has_version sys-apps/shadow		&& echo "/etc/.pwd.lock")
+$(has_initscript clock				&& echo "/etc/adjtime")
+$(has_version media-libs/alsa-lib	&& echo "/etc/asound.state")
+$(has_version app-shells/bash		&& echo "/etc/bash/bash_logout")
+$(has_version sys-fs/e2fsprogs		&& echo /etc/blkid.tab{,.old})
+$(has_version gnome-base/ORBit      && echo "/etc/CORBA")
+$(has_version net-mail/courier-imap	&& echo /etc/courier-imap/{authdaemond.conf,imapd.pem})
+$(has_version media-sound/daapd		&& echo "/etc/daapd.conf")
+$(has_version net-dns/ddclient		&& echo /etc/ddclient/ddclient.{cache,conf})
+$(has_version app-misc/fdutils		&& echo "/etc/driveprm")
+$(has_initscript hostname			&& echo "/etc/env.d/01hostname")
+$(has_version dev-java/java-config  && echo "/etc/env.d/20java")
+$(has_java sun-j2ee   				&& echo /etc/env.d/29sun-j2ee-*)
+$(has_eclass games 					&& echo "/etc/env.d/90games")
+$(has_version net-fs/nfs-utils		&& echo "/etc/exports")
+$(has_version net-print/foomatic    && echo "/etc/foomatic.cups")
+$(has_version app-portage/gentoolkit-dev && echo /etc/gensync/*.syncsource)
+$(has_version gnome-base/gconf      && echo "/etc/gconf/gconf.xml.defaults")
+$(has_version gnome-base/gnome-print && echo "/etc/gnome")
+$(has_version x11-libs/gtk+         && echo "/etc/gtk-2.0/gtk.immodules
+					/etc/gtk-2.0/gdk-pixbuf.loaders")
+$(has_version app-pda/synce			&& echo /etc/hotplug/usb/synce{,.usermap})
+$(has_version media-libs/libgphoto2	&& echo "/etc/hotplug/usb/usbcam-gphoto2.usermap")
+$(has_version sys-apps/sysvinit		&& echo "/etc/ioctl.save")
+$(has_version sys-boot/lilo         && echo "/etc/lilo.conf")
+$(has_version net-nds/openldap		&& echo "/etc/openldap/ssl/ldap.pem")
+$(has_version dev-util/pretrace		&& echo "/etc/pretrace.conf")
+$(has_version net-ftp/proftpd       && echo "/etc/proftpd/proftpd.conf")
+$(has_version x11-libs/pango        	&& echo "/etc/pango/pango.modules")
+$(has_version sys-devel/prelink     	&& echo "/etc/prelink.cache")
+$(has_initscript bootmisc \
+|| has_initscript domainname 		&& echo "/etc/resolv.conf")
+$(has_version net-misc/rsync		&& echo "/etc/rsync/rsyncd.conf")
+$(has_version gnome-extra/nautilus-share && echo "/etc/samba/smbshared.conf")
+$(has_version app-text/docbook-dsssl-stylesheets && echo "/etc/sgml/dsssl-docbook-stylesheets.cat")
+$(has_version app-text/openjade     	&& echo "/etc/sgml/$(best_version app-text/openjade | grep -o 'openjade-[[:digit:]]\.[[:digit:]]\.[[:digit:]]').cat")
+$(has_version app-text/docbook-xml-simple-dtd && echo "/etc/sgml/xml-simple-docbook-$(cpvr_to_v $(best_version app-text/docbook-xml-simple-dtd)).cat")
+$(has_version media-gfx/splashutils	&& echo "/etc/splash/default")
+$(has_version games-strategy/freeciv 	&& echo "/etc/X11/app-defaults/Freeciv")
+$(has_version x11-misc/xscreensaver 	&& echo "/etc/X11/app-defaults/XScreenSaver")
+$(has_version xfce-base/xfce4-base	&& echo "/etc/X11/Sessions/xfce4")
+$(has_version app-cdr/xcdroast		&& echo "/etc/xcdroast.conf")
+$(has_version gnome-base/libglade   	&& echo "/etc/xml/catalog")
+$(has_version app-text/docbook-xml-dtd 	&& echo "/etc/xml/docbook")
+
+$(has_version media-gfx/splashutils 	&& echo /lib/splash/cache/{.splash,daemon.pid,dep{cache,tree},levels,message,progress,svcs_start})
+
+$(has_version app-office/abiword	&& echo "/usr/bin/abiword")
+$(has_version mail-client/evolution	&& echo "/usr/bin/evolution")
+$(has_version sys-devel/gcc-config	&& echo /{usr/bin/{gcc-config,{,${CHOST}-}{gcc,cpp,cc,c++,g++,f77,g77,gcj}{,32,64}},lib/{cpp,libgcc_s.so{,.1}}})
+$(has_version www-client/links		&& echo "/usr/bin/links")
+$(has_version media-gfx/gimp		&& echo "/usr/bin/gimp")
+$(has_version dev-lang/python 		&& echo /usr/bin/python{,2})
+
+$(has_version www-client/mozilla-bin \
+|| has_version www-client/mozilla 	&& XPIApp "mozilla")
+$(has_version www-client/mozilla-firefox-bin \
+|| has_version www-client/mozilla-firefox && XPIApp "MozillaFirefox")
+$(has_version mail-client/mozilla-thunderbird-bin \
+|| has_version mail-client/mozilla-thunderbird && XPIApp "MozillaThunderbird")
+
+$(has_version app-text/djvu 		&& nsplugin "nsdejavu.so")
+$(has_version app-text/acroread		&& nsplugin "nppdf.so")
+$(has_version net-www/qplug 		&& nsplugin "qplug.so")
+$(has_version net-www/netscape-plugger 	&& nsplugin "plugger.so")
+$(has_version net-www/adobesvg 		&& nsplugin "libNPSVG3.so")
+$(has_version net-www/mplayerplug-in 	&& nsplugin "mplayerplug-in.so")
+$(has_version net-www/netscape-flash 	&& nsplugin "libflashplayer.so" "flashplayer.xpt")
+$(has_version gnome-base/librsvg	&& nsplugin libmozsvgdec.{a,la,so})
+$(has_version net-www/gplflash 		&& nsplugin "npflash.so")
+$(has_java blackdown   			&& nsplugin "javaplugin_oji.so")
+$(has_java sun || has_java ibm-jdk	&& nsplugin "libjavaplugin_oji.so")
+$(has_java ibm-jre 			&& nsplugin "javaplugin.so")
+$(has_version media-video/gxine 	&& nsplugin "gxineplugin.so")
+$(has_version media-video/vlc 		&& nsplugin "libvlcplugin.so")
+$(has_version media-video/totem '' mozilla && nsplugin libtotem_mozilla.{a,la,so})
+
+$(has_version '=x11-libs/openmotif-2.2*' && motif-profile openmotif-2.2)
+$(has_version '=dev-lang/python-2.3*' 	&& echo "/usr/lib/python2.3/lib-dynload/bz2.so")
+$(has_version dev-python/pygtk 		&& echo /usr/lib/python${PYVER}/site-packages/pygtk.{py,pyc,pyo,pth})
+$(has_version app-emulation/wine	&& echo "/usr/lib/wine/.data/fake_windows")
+
+$(has_version sys-devel/acovea		&& echo "/usr/share/acovea/config")
+$(has_version media-libs/fontconfig	&& echo "/usr/share/fonts/afms")
+$(has_version app-office/lyx 		&& fontdir latex-xft-fonts)
+$(has_version media-fonts/arphicfonts 	&& fontdir arphicfonts)
+$(has_version media-fonts/artwiz-fonts 	&& fontdir artwiz)
+$(has_version media-fonts/aquafont	&& fontdir aquafont)
+$(has_version media-fonts/baekmuk-fonts	&& fontdir baekmuk-fonts)
+$(has_version media-fonts/corefonts	&& fontdir corefonts)
+$(has_version media-fonts/freefonts	&& fontdir freefont)
+$(has_version media-fonts/gnu-gs-fonts-std && fontdir default/ghostscript)
+$(has_version media-fonts/gnu-gs-fonts-other && fontdir default/ghostscript)
+$(has_version media-fonts/lila-fonts 	&& fontdir lila-fonts)
+$(has_version media-fonts/sharefonts	&& fontdir sharefonts)
+$(has_version media-fonts/terminus-font	&& fontdir terminus)
+$(has_version media-fonts/ttf-bitstream-vera && fontdir ttf-bitstream-vera)
+$(has_version media-fonts/urw-fonts 	&& fontdir urw-fonts)
+$(has_version x11-themes/gnome-icon-theme && echo /usr/share/icons/{gnome,hicolor}/icon-theme.cache)
+$(has_version x11-themes/gnome-themes 	&& echo /usr/share/icons/{Crux,Flat-Blue,HighContrastLargePrint{,Inverse},LowContrastLargePrint,Sandy,Smokey-{Blue,Red}}/icon-theme.cache)
+$(has_version x11-themes/gnome-themes-extras && echo /usr/share/icons/{Amaranth,Gorilla,Lush,Nuvola,Wasp}/icon-theme.cache)
+$(has_version app-editors/jedit		&& echo "/usr/share/jedit/jars")
+$(has_version sys-apps/man 		&& echo "/usr/share/man/whatis")
+$(has_eclass linux-mod			&& echo "/usr/share/module-rebuild")
+$(has_version media-gfx/gimp		&& echo "/usr/share/pixmaps/wilber-icon.png")
+$(has_version mail-filter/popfile	&& echo "/usr/share/popfile/messages")
+$(has_version media-sound/timidity++ 	&& echo "/usr/share/timidity/current")
+$(has_version media-sound/xmms		&& echo "/usr/share/xmms/Skins")
+ 
+$(has_version app-admin/gnome-system-tools && echo "/var/cache/setup-tool-backends")
+$(has_version sci-misc/boinc		&& echo "/var/lib/boinc" "/var/log/boinc.log")
+$(has_version app-sci/gimps		&& echo /var/lib/gimps/{{local,prime,worktodo}.ini,{p,q,m}*,prime.log,results.txt})
+$(has_version net-firewall/iptables		&& echo "/var/lib/iptables/rules-save")
+$(has_version net-fs/nfs-utils			&& echo /var/lib/nfs/{e,rm,x}tab)
+$(has_version net-analyzer/ntop			&& echo "/var/lib/ntop")
+$(has_version dev-db/postgresql			&& echo "/var/lib/postgresql")
+$(has_version app-text/scrollkeeper		&& echo "/var/lib/scrollkeeper")
+$(has_version sys-apps/dbus  			&& echo /var/lib/dbus/{pid,system_bus_socket})
+$(has_version app-sci/setiathome		&& echo "/var/lib/setiathome")
+$(has_version sys-apps/slocate			&& echo "/var/lib/slocate/slocate.db")
+$(has_version app-accessibility/festival && echo "/var/log/festival.log")
+$(has_version sys-apps/pam-login		&& echo "/var/log/lastlog")
+$(has_version sys-apps/partimage	&& echo /var/log/partimage-debug.log{,_latest})
+$(has_version www-proxy/privoxy		&& echo "/var/log/privoxy/jarfile
+						/var/log/privoxy/privoxy.log")
+$(has_version dev-lang/python 		&& echo "/var/log/python-updater.log")
+$(has_version app-accessibility/speechd && echo "/var/log/speechd")
+$(has_version app-pda/synce		&& echo "/var/log/synce")
+$(has_version mail-mta/qmail		&& echo "/var/qmail")
+$(has_version sys-apps/vixie-cron	&& echo "/var/run/cron.pid")
+$(has_version app-admin/sysklogd	&& echo /var/run/{sys,k}logd.pid)
+$(has_version net-misc/netapplet    	&& echo "/var/run/netapplet.socket")
+$(has_initscript urandom		&& echo "/var/run/random-seed")
+$(has_version app-misc/screen		&& eval echo "/var/run/screen/S-{${users}}")
+$(has_version app-admin/sudo        	&& echo "/var/run/sudo")
+$(has_version sys-process/cronbase	&& echo /var/spool/cron/lastrun/{cron.{hourly,daily,weekly,monthly},lock})
+$(has_version net-mail/vpopmail		&& echo "/var/vpopmail")
+"
+
+# Packages which drop files or directories on more than one place go here, 
+# listed alphabetically by category/package.
+has_version app-admin/usermin \
+	&& PRUNE="${PRUNE}
+	/usr/libexec/usermin
+	/etc/usermin
+	/var/usermin"
+has_version app-admin/webmin \
+	&& PRUNE="${PRUNE}
+	/etc/webmin
+	/var/webmin"
+has_version app-editors/gvim || has_version app-editors/vim || has_version app-editors/vim-core \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/bin/{vi,vimdiff,rvim,ex,view,rview,vim})
+	"
+has_version app-emulation/vmware-workstation \
+	&& PRUNE="${PRUNE}
+	/etc/vmware
+	/var/lock/subsys/vmware
+	/var/run/vmware"
+has_version app-text/docbook-sgml-dtd \
+	&& PRUNE="${PRUNE}
+	$(cat /var/db/pkg/app-text/docbook-sgml-dtd-*/SLOT | sed 's:^:/etc/sgml/sgml-docbook-:; s:$:.cat:')
+	/etc/sgml/sgml.cenv
+	/etc/sgml/sgml.env"
+has_version app-text/sgml-common \
+	&& PRUNE="${PRUNE}
+	/etc/sgml/sgml-ent.cat
+	/etc/sgml/sgml-docbook.cat
+	/etc/sgml/catalog"
+has_version app-text/sgmltools-lite \
+	&& PRUNE="${PRUNE}
+	/etc/env.d/93sgmltools-lite
+	/etc/sgml/sgml-lite.cat"
+has_version dev-db/mysql \
+	&& PRUNE="${PRUNE}
+	/var/lib/mysql
+	/var/log/mysql
+	/var/run/mysqld"
+has_version dev-games/clanlib \
+	&& PRUNE="${PRUNE}
+	/usr/include/ClanLib
+	$(echo /usr/lib/libclan*)"
+has_version dev-lang/perl \
+	&& PRUNE="${PRUNE}
+	$(perl -e 'use Config; print $Config{installsitearch};' )
+	$(perl -e 'use Config; print $Config{privlib}."/CPAN/Config.pm";' )
+	$(perl -e 'use Config; print $Config{installarchlib}."/perllocal.pod";')
+	/usr/lib/libperl.so"
+has_version dev-ruby/ruby-config \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/bin/{ruby,irb,erb,testrb,rdoc})
+	/usr/lib/libruby.so
+	/usr/share/man/man1/ruby.1.gz"
+has_version dev-util/ccache \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/lib/ccache/bin/{c++,cc,g++,gcc,$CHOST-{c++,g++,gcc}})
+	$CCACHE_DIR"
+has_version dev-util/eclipse-sdk 0 \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/lib/eclipse/{Uninstaller,features,plugins})" 
+has_version dev-util/eclipse-sdk 2 \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/lib/eclipse-2/{Uninstaller,features,plugins})"
+has_version dev-util/eclipse-sdk 3 \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/lib/eclipse-3/{Uninstaller,features,plugins})"
+has_version gnome-base/gdm \
+	&& PRUNE="${PRUNE}
+	/etc/X11/sessions
+	$(echo /var/gdm/{:*.{log{,.*},Xauth,Xservers},.cookie,.fonts.cache-1,.gdmfifo,.keep})
+	$(echo /var/log/gdm/:*.log{,.*})
+	/var/run/gdm.pid"
+has_version kde-base/kdebase \
+	&& PRUNE="${PRUNE}
+	/usr/kde/3.2/share/templates/.source/emptydir
+	/var/log/kdm.log
+	/var/run/kdm.pid
+	$(eval echo "/var/tmp/kdecache-{${users}}")"
+has_version mail-mta/postfix \
+	&& PRUNE="${PRUNE}
+	/etc/mail/aliases.db
+	/var/spool/postfix"
+has_version media-gfx/xloadimage \
+	&& PRUNE="${PRUNE}
+	/usr/bin/xview
+	/usr/bin/xsetbg
+	/usr/share/man/man1/xview.1.gz
+	/usr/share/man/man1/xsetbg.1.gz"
+has_version media-libs/gstreamer \
+	&& PRUNE="${PRUNE}
+	/var/lib/cache
+	$(sed 's:\(.*\):/var/lib/cache/gstreamer-\1 /var/lib/cache/gstreamer-\1/registry.xml:' /var/db/pkg/media-libs/gstreamer-*/SLOT)"
+has_version net-analyzer/nessus-core \
+	&& PRUNE="${PRUNE}
+	/etc/nessus/nessusd.conf
+	/var/lib/nessus"
+has_version net-analyzer/nessus-plugins \
+	&& PRUNE="${PRUNE}
+	/usr/lib/nessus/plugins
+	/usr/lib/nessus/plugins/.desc"
+has_version net-dialup/ppp \
+	&& PRUNE="${PRUNE}
+	/etc/ppp
+	/var/run/pppd2.tdb"
+has_version net-dialup/rp-pppoe \
+	&& PRUNE="${PRUNE}
+	$(echo /var/run/pppoe.conf-adsl.pid{,.ppp{d,oe},.start})"
+has_version net-dns/bind \
+	&& PRUNE="${PRUNE}
+	/etc/bind/rndc.key
+	/var/run/named"
+has_version net-firewall/shorewall \
+	&& PRUNE="${PRUNE}
+	$(echo /var/lib/shorewall/{chains,nat,proxyarp,restarted,zones})
+	$(echo /var/lock/subsys{,/shorewall})"
+has_version net-fs/nfs-utils \
+	&& PRUNE="${PRUNE}
+	$(echo /var/lib/nfs/{sm,sm.bak,state})
+	/var/run/rpc.statd.pid"
+has_version net-fs/samba \
+	&& PRUNE="${PRUNE}
+	/etc/samba/smb.conf
+	/etc/samba/private
+	/var/spool/samba
+	/var/log/samba
+	/var/log/samba3
+	/var/run/samba
+	/var/cache/samba
+	/var/lib/samba"
+has_version net-ftp/vsftpd \
+	&& PRUNE="${PRUNE}
+	/etc/ftpusers
+	/etc/vsftpd/vsftpd.conf
+	/usr/share/vsftpd"
+has_version net-misc/dhcpcd \
+	&& PRUNE="${PRUNE}
+	/etc/ntp.conf		/etc/ntp.conf.sv
+	/etc/resolv.conf        /etc/resolv.conf.sv
+	/etc/yp.conf    	/etc/yp.conf.sv
+	$(eval echo /var/cache/dhcpcd-{$interfaces}.cache)
+	$(eval echo /var/lib/dhcpc{,/dhcpcd{.exe,-{$interfaces}.info{,.old}}})
+	$(eval echo /var/run/dhcpcd-{$interfaces}.pid)"
+has_version net-misc/ntp \
+	&& PRUNE="${PRUNE}
+	/etc/ntp.conf
+	/var/log/ntp.log"
+has_version net-misc/nxserver-freenx \
+	&& PRUNE="${PRUNE}
+	/etc/env.d/50nxserver
+	/usr/NX/home/nx/.ssh/known_hosts
+	/usr/NX/var/db/closed
+	/usr/NX/var/db/failed
+	/usr/NX/var/db/running"
+has_version net-misc/ssh || has_version net-misc/openssh \
+	&& PRUNE="${PRUNE}
+	$(echo /etc/ssh/ssh_host_{,dsa_,rsa_}key{,.pub})"
+has_version net-misc/openssh \
+	&& PRUNE="${PRUNE}
+	$(echo /etc/ssh /etc/ssh/{moduli,ssh_config,sshd_config} )"
+has_version net-print/cups \
+	&& PRUNE="${PRUNE}
+	/etc/cups
+	/etc/printcap
+	/var/log/cups
+	/var/spool/cups"
+has_version net-wireless/bluez-utils \
+	&& PRUNE="${PRUNE}
+	/etc/bluetooth/link_key
+	/var/run/sdp"
+has_version '=net-www/apache-2*' \
+	&& PRUNE="${PRUNE}
+	/var/lib/dav
+	/var/log/apache2
+	/var/cache/apache2
+	$(echo /etc/apache2/{conf/{ssl,vhosts},{extra,}modules,lib,logs})"
+has_version sys-apps/acpid \
+	&& PRUNE="${PRUNE}
+	/var/log/acpid
+	/var/run/acpid.socket"
+has_version sys-apps/baselayout	\
+	&& PRUNE="${PRUNE}
+	/etc/env.d/02locale
+	/etc/gentoo-release
+	/etc/modprobe.conf      /etc/modprobe.conf.old
+	/etc/modprobe.devfs     /etc/modprobe.devfs.old
+	/etc/modules.conf       /etc/modules.conf.old
+	/etc/ld.so.conf
+	/etc/prelink.conf
+	/etc/profile.env
+	/etc/csh.env
+	/usr/share/man/.keep.gz
+	/var/lib/init.d"
+has_version sys-apps/portage \
+	&& PRUNE="${PRUNE}
+	$([[ -r /etc/dispatch-conf.conf ]] && sed 's/[[:space:]]*archive-dir=\("\?\)\(.*\)\1$/\2/;t;d' /etc/dispatch-conf.conf)
+	$PORTDIR
+	/var/cache/edb
+	/var/db/pkg
+	/var/log/emerge.log
+	/var/log/emerge_fix-db.log
+	$PORT_LOGDIR
+	$PORTAGE_TMPDIR/portage"
+has_version sys-apps/util-linux \
+	&& PRUNE="${PRUNE}
+	/var/log/wtmp
+	/var/run/utmp"
+has_version sys-devel/gcc \
+	&& PRUNE="${PRUNE}
+	/etc/env.d/05gcc
+	/etc/env.d/gcc/config
+	$(gcc -v 2>&1 | sed 's/.*--infodir=\([^[:space:]]*\)\>.*/\1/;t;d')"
+has_version sys-devel/distcc \
+	&& PRUNE="${PRUNE}
+	/etc/env.d/02distcc
+	/etc/env.d/04distcc
+	$(echo /usr/lib/distcc/bin/cc,{,${CHOST}-}{c++,g++,gcc})
+	/var/run/distccd/distccd.pid"
+has_version sys-fs/devfsd \
+	&& PRUNE="${PRUNE}
+	/dev
+	/etc/modules.devfs
+	/lib/dev-state"
+has_version sys-fs/udev \
+	&& PRUNE="${PRUNE}
+	/dev
+	/etc/dev.d
+	/lib/udev-state"
+has_version sys-kernel/genkernel \
+	&& PRUNE="${PRUNE}
+	/etc/kernels
+	/var/log/genkernel.log"
+has_version sys-libs/glibc \
+	&& PRUNE="${PRUNE}
+	/etc/ld.so.cache
+	/etc/ld.so.preload
+	/etc/locales.build
+	/usr/lib/gconv/gconv-modules.cache
+	/var/run/nscd
+	$(sed 's/^[[:space:]]*logfile[[:space:]]\+\([[:graph:]]\+\)/\1/;t;d' /etc/nscd.conf)"
+has_version www-proxy/squid \
+	&& PRUNE="${PRUNE}
+	/var/cache/squid
+	/var/log/squid"
+has_version www-servers/tomcat \
+	&& PRUNE="${PRUNE}
+	/usr/share/tomcat/lib/xercesImpl.jar
+	/usr/share/tomcat/lib/xmlParserAPIs.jar"
+has_version x11-base/opengl-update \
+	&& PRUNE="${PRUNE} 
+	/etc/env.d/03opengl
+	/usr/lib/libGL.a	/usr/lib/libGL.so	/usr/lib/libGL.so.1
+	/usr/X11R6/lib/libGL.so.1
+	/usr/X11R6/lib/libMesaGL.so
+	/usr/lib/libGLcore.so	/usr/lib/libGLcore.so.1
+	/usr/lib/libGL.la
+	/usr/X11R6/lib/modules/extensions/libglx.so
+	/usr/X11R6/lib/modules/extensions/libglx.a"
+has_version x11-base/xfree || has_version x11-base/xorg-x11 \
+	&& PRUNE="${PRUNE}
+	/etc/X11/XF86Config-4
+	/etc/X11/xinit/.Xmodmap
+	/etc/X11/Xmodmap
+	/var/lib/xdm/authfiles
+	/var/log/xdm.log
+	/var/run/xauth
+	/var/run/xdmctl"
+has_version x11-base/xfree \
+	&& PRUNE="${PRUNE}
+	/etc/X11/XF86Config
+	$(fontdir /usr/X11R6/lib/X11/fonts/{TTF,ukr,misc,util,75dpi,Type1,local,Speedo,truetype,encodings,encodings/large,100dpi,cyrillic})
+	$(echo /var/log/XFree86.*.log{,.old})"
+has_version x11-base/xorg-x11 \
+	&& PRUNE="${PRUNE}
+	/etc/X11/xorg.conf
+	$(fontdir {TTF,ttf,ukr,misc,util,75dpi,Type1,local,Speedo,encodings,encodings/large,100dpi,cyrillic,default})
+	$(echo /var/log/Xorg.*.log{,.old})"
+has_version x11-base/xorg-x11 '' xprint \
+	&& PRUNE="${PRUNE}
+	/var/lock/subsys/xprint
+	/var/run/Xprint_servers"
+has_version x11-libs/qt 2 \
+	&& PRUNE="${PRUNE}
+	/usr/qt/2/etc/settings/.kconfigrc.lock
+	/usr/qt/2/etc/settings/kconfigrc"
+has_version x11-libs/qt 3 \
+	&& PRUNE="${PRUNE}
+	/usr/qt/3/etc/settings/qt_plugins_3.3rc
+	/usr/qt/3/etc/settings/.qt_plugins_3.3rc.lock
+	/usr/qt/3/etc/settings/.kconfigrc.lock
+	/usr/qt/3/etc/settings/kconfigrc"
+has_version x11-misc/electricsheep \
+	&& PRUNE="${PRUNE}
+	$(echo /usr/share/electricsheep-{frown,smile,splash-{0,1}}.tif)
+	/var/cache/sheep"
+has_version x11-misc/entrance \
+	&& PRUNE="${PRUNE}
+	$(echo /var/lib/{:*.Xauth,entrance_ipc_$(</var/run/entranced.pid)\|*})
+	/var/run/entranced.pid"
+
+# Packages which omit ldconfig symlinks (to test, delete the symlink and see
+# if ldconfig recreates it). Specify at least to minor, these are ugly.
+has_version '=media-video/ati-drivers-3.9*' \
+	&& PRUNE="${PRUNE}	/usr/X11R6/lib/libfglrx_gamma.1"
+has_version '=media-video/nvidia-glx-1.0*' \
+	&& PRUNE="${PRUNE} 	/usr/lib/libXvMCNVIDIA_dynamic.so.1"
+has_version '=net-nds/openldap-2.2.26*' \
+	&& PRUNE="${PRUNE} 	/usr/lib/liblber.so.2 /usr/lib/libldap.so.2 /usr/lib/libldap_r.so.2"
+	
+# kernel modules - also /lib/modules/$(uname -r) above.
+has_version virtual/linux-sources \
+	&& for kernel in $(grep -l '\<virtual/linux-sources\>' /var/db/pkg/sys-kernel/*/PROVIDE); do
+		PRUNE="${PRUNE} $(bunzip2 -c "${kernel%/PROVIDE}/environment.bz2" | sed 's:^KV=:/lib/modules/:;ta;d;:a;q')"
+	done
+}
+
+# Lists of files too large to become part of the find command line
+# File names should be output one-per-line on stdout
+prune_files() {
+	# Loggers.
+	# sysklogd
+	has_version app-admin/sysklogd \
+		&& (
+		for logfile in $(syslogd-listfiles -a); do
+			# FIXME assume 7-day rotation
+			echo ${logfile}{,.{0,1,2,3,4,5,6}.bz2}
+		done
+		) | sed 's/[[:space:]]\+/\n/g'
+	# syslog-ng
+	has_version app-admin/syslog-ng \
+		&& cat /etc/syslog-ng/syslog-ng.conf \
+		| grep -v '^[[:space:]]*\(#\|$\)' \
+		| grep '^destination' \
+		| sed 's/^.*file("\([^"]\+\)");.*/\1/'
+	has_version app-editors/gvim \
+	|| has_version app-editors/vim \
+	|| has_version app-editors/vim-core \
+		&& (
+		# See vim-doc.eclass
+		vimfiles=/usr/share/vim/vimfiles
+		for d in /usr/share/vim/vim[[:digit:]]*; do
+			[[ -d "$d/doc" ]] || continue	# catch a failed glob
+			if [[ -d $vimfiles/doc ]]; then
+				for t in $vimfiles/doc/*.txt; do
+					echo $d/doc/${t/*\//}
+				done
+			fi
+		done
+		for d in $vimfiles/after/syntax/*.d; do
+			[[ -d "$d" ]] || continue	# catch a failed glob
+			echo "${d%.d}"
+		done
+		)
+	# Tetex stuff, oh happy days.
+	if has_version app-text/tetex; then
+		(
+		echo /usr/bin/texi2html /usr/share/texmf/ls-R
+		echo /etc/texmf/web2c/{texmf.cnf,fmtutil.cnf,updmap.cfg}
+		) | sed 's/[[:space:]]\+/\n/g'
+		expandpathsea /var/lib/texmf/ls-R /var/cache/fonts/ls-R
+		# texlinks
+		sed -e 's/#.*//;/^$/d;s/^ *\([^[:space:]]\+\)[[:space:]]\+.*$/\1/;s:^:/usr/bin/:' /etc/texmf/web2c/fmtutil.cnf
+	fi
+	# The gnome-games ebuild doesn't install scores files that already 
+	# exist on the filesystem (silly!)
+	has_version gnome-extra/gnome-games \
+		&& for game in $(
+			cat /var/db/pkg/gnome-extra/gnome-games-*/CONTENTS \
+			| grep '^obj /usr/bin/'\
+			| sed "s:\(^obj \)/usr/bin/\(.*\)\( .*\)\{2\}$:\2:"
+		); do
+			find /var/lib/games/${game}.*.scores /var/lib/games/${game}.scores 2>/dev/null
+		done
+	# http://bugs.gentoo.org/show_bug.cgi?id=9849
+	if has_version sys-apps/baselayout; then
+		[[ -r /usr/share/baselayout/mkdirs.sh ]] \
+			&& sed 's/^.*  can.t create \(.*\)"$/\1/;t;d' \
+				/usr/share/baselayout/mkdirs.sh
+		echo "/var/db"
+	fi
+	# info dir files
+	has_version sys-apps/texinfo \
+		&& for x in ${INFOPATH//:/ } ${INFODIR//:/ }; do
+			echo ${x%/}/dir
+			echo ${x%/}/dir.gz
+			echo ${x%/}/dir.old
+		done
+	# Generate cached man pages
+	has_version sys-apps/man \
+		&& for x in ${MANPATH//:/ } \
+			$(sed -e 's/^MANPATH\>//;t;d' /etc/man.conf); do 
+			x=${x%/}
+			for manx in $x/man*; do
+				n=${manx#$x/man}
+				for manp in $manx/*; do
+					p=${manp#$manx/};
+					echo "/var/cache/man/cat$n/${p%.gz}.bz2"
+				done
+			done
+		done
+	has_version sys-devel/binutils-config && (
+		TARGET="$CHOST"
+		VER="$(source "/etc/env.d/binutils/config-$TARGET"; echo "$CURRENT")"
+		cd "/usr/${TARGET}/binutils-bin/${VER}"
+		for x in *; do
+			echo "/usr/${TARGET}/bin/${x}"
+			echo "/usr/bin/${TARGET}-${x}"
+			echo "/usr/bin/${x}"
+		done
+		echo "/usr/${TARGET}/lib/ldscripts"
+		cd "/usr/lib/binutils/${TARGET}/${VER}"
+		for x in lib*; do
+			echo "/usr/${TARGET}/lib/${x}"
+		done
+		cd "/usr/lib/binutils/${TARGET}/${VER}/include"
+		for x in *; do
+			echo "/usr/include/${x}"
+		done
+		echo "/etc/env.d/binutils/config-$TARGET"
+		echo "/etc/env.d/05binutils"
+	)
+	if has_version sys-libs/db; then
+		# db.eclass
+		echo /usr/lib/libdb{,_cxx,_tcl,_java}.{so,a}
+		[[ -f /usr/lib/libdb1.so.2 ]] && echo /usr/lib/libdb{.so.2,{,-}1.so}
+		echo /usr/include/db{,_185}.h
+	fi | sed 's/[[:space:]]\+/\n/g'
+	
+	[[ "$looking_for" ]] && return
+	
+	# shared-mime-database not done in sandbox - e.g. monodevelop
+	if has_version dev-util/desktop-file-utils \
+		|| has_version x11-misc/shared-mime-info; then
+		for package in /usr/share/mime/packages/*.xml; do
+			[[ -f "$package" ]] \
+			&& sed 's!.*<mime-type[[:space:]]\+type="\([^"]*\)">.*!/usr/share/mime/\1.xml!;t;s!.*<mime-type[[:space:]]\+type='"'"'\([^'"'"']*\)'"'"'>.*!/usr/share/mime/\1.xml!;t;d' "$package"
+		done | while read x; do
+			echo "$x"; dirname "$x"
+		done | sort -u
+		cat <<END
+/usr/share/applications/mimeinfo.cache
+/usr/share/mime/aliases
+/usr/share/mime/subclasses
+END
+	fi
+	has_version media-gfx/bootsplash \
+		&& for THEME in /etc/bootsplash/*; do
+			THEME=${THEME##*/}
+			[[ "${THEME}" != "default" && -d "/etc/bootsplash/${THEME}" ]] \
+			&& for SIZE in 800x600 1024x768 1280x1024 1600x1200; do
+				echo /usr/share/bootsplash/initrd-${THEME}-${SIZE}
+			done
+		done
+	# See /etc/init.d/xfs (using my own sed-hacker get_fontdir_list)
+	[[ -e $(car /etc/runlevels/*/xfs ) ]] \
+		&& for x in $(sed ':a;/,$/N;s/,\n//;ta;s/^[[:space:]]*catalogue[[:space:]]*=\(.*\)$/\1/;tb;d;:b;q' /etc/X11/fs/config); do
+			fontdir "$x"
+		done
+	has_version app-shells/bash-completion-config \
+		&& for x in /etc/bash_completion.d/*; do
+			[ -h "$x" -a -r "$x" ] && echo "$x"
+		done
+	if has_version x11-libs/motif-config; then
+		echo /usr/lib/motif/removed
+		echo /usr/lib/motif/current
+		if [ -f /usr/lib/motif/current ]; then
+			x=$(</usr/lib/motif/current)
+			for y in /usr/lib/$x/*; do y=${y##*/}
+				[ "$y" = "*lib*" ] && echo "/usr/lib/$y" || echo "/usr/bin/$y"
+			done
+			for y in /usr/include/$x/*; do echo "/usr/include/${y##*/}"; done
+			for y in /usr/share/man/*/*-$x.??(x).gz; do echo "${y/-$x/}"; done
+		fi
+	fi
+	if has_version x11-base/opengl-update; then
+		case "$(opengl-update --get-implementation)" in
+			nvidia)
+			cat <<END
+/usr/lib/libnvidia-tls.so
+/usr/lib/libnvidia-tls.so.1
+/usr/lib/modules/extensions/libglx.so
+/usr/lib/opengl/nvidia/lib/tls
+/usr/lib/tls
+/usr/lib/tls/libnvidia-tls.so
+/usr/lib/tls/libnvidia-tls.so.1
+END
+			;;
+		esac
+		cat <<END
+/usr/lib32
+/usr/lib32/tls
+/usr/X11R6/include/GL/gl.h
+/usr/X11R6/include/GL/glx.h
+/usr/X11R6/include/GL/glxtokens.h
+/usr/X11R6/include/GL/glext.h
+/usr/X11R6/include/GL/glxext.h
+/usr/X11R6/include/GL/glxmd.h
+/usr/X11R6/include/GL/glxproto.h
+END
+	fi
+
+	# Explicitly referenced pidfiles
+	sed ':a;/\\$/N;s/\\\n//;ta;s/^.*start-stop-daemon.*\(\<-p\|--pidfile\>\|\<-m\|--make-pidfile\>\)[[:space:]]*\(\/[^[:space:]]\+\).*$/\2/;tb;s/^.*pidfile=\(\/[^[:space:]]\+\).*$/\1/;tb;d;:b;s/[[:space:]]\+/\n/g' /var/lib/init.d/started/*
+	# Guess some pidfiles
+	for service in /var/lib/init.d/started/*; do
+		echo "/var/run/${service##*/}.pid"
+	done
+	for service in /var/lib/init.d/started/net.ppp*; do
+		echo "/var/run/${service##*/net.}.pid"
+	done
+	# Custom init scripts - if it's in a runlevel, it's wanted...
+	for service in /etc/runlevels/*/*; do 
+		readlink "${service}"
+	done
+	# lost+found in each mountpoint (but not files therein)
+	sed 's:[^[:space:]]\+ \(/[^[:space:]]*\).*:\1/lost+found:;ta;d;:a;s://:/:g' /proc/mounts
+	# .reiserfs_priv for reiser3 and reiser4 filesystems
+	sed 's:[^[:space:]]\+ \(/[^[:space:]]*\) reiser\(fs\|4\)\>.*:\1/.reiserfs_priv:;ta;d;:a;s://:/:g' /proc/mounts
+	# the actual /lib/modules goes here so that directories therein still 
+	# get seen - TODO needs restructuring...
+	echo "/lib/modules"
+
+	if [[ -r /etc/portage/cruft.locals ]]; then
+		echo "Adding contents of /etc/portage/cruft.locals..." >&2
+		sed -e 's/#.*//;/^$/d' /etc/portage/cruft.locals \
+		| while read file; do
+			if [[ -e "$file" ]]; then
+				echo " +  $file" >&2
+				echo "$file"
+			else
+				echo " -  $file" >&2
+			fi
+		done
+	fi
+}
+
+symlink_hell() {
+	has_version sys-apps/baselayout || has_version x11-base/xorg-x11 \
+		&& echo "s:^/usr/include/GL/:/usr/X11R6/include/GL/:"
+	has_version "<x11-base/xorg-x11-6.8.1.904" \
+		&& echo "s:^/usr/X11R6/lib/:/usr/lib/:;" \
+			"s:^/usr/include/X11/:/usr/X11R6/include/X11/:"
+	has_version ">=x11-base/xorg-x11-6.8.1.904" \
+		&& echo "s:^/usr/X11R6/:/usr/:"
+	has_version sys-libs/ncurses \
+		&& echo "s:^/usr/lib/terminfo/:/usr/share/terminfo/:"
+}
+	
+if [[ "$1" == --list-for ]]; then
+	has_version() {
+		pkgspec="$1"; slot="$2"
+		if [[ -z "$slot" ]]; then
+			for cpv in $(all_versions "$pkgspec"); do
+				[[ "$cpv" == "$looking_for" ]] && return 0
+			done
+			return 1
+		fi
+		for cpv in $(all_versions "$pkgspec"); do
+			[[ "$cpv" == "$looking_for" && "$(<"/var/db/pkg/$cpv/SLOT")" == "$slot" ]] && return 0
+		done
+		return 1
+	}
+	while read looking_for; do
+		PRUNE=""
+		prune_list
+		(echo "$PRUNE" | sed 's/\s\+/\n/g'
+		prune_files) | sed '/^$/d'
+		echo
+	done
+	exit 0
+fi
+
+# Begin actual program!
+
+export LC_ALL='C'
+export LC_COLLATE='C'
+
+# .py{c,o} files: two methods. One is to use awk: to filter out .py{c,o} files 
+# for which the corresponding .py exists:
+# | awk '/\.py$/ { py=$0; } $0 !~ "^"py"[co]$"' \
+# This breaks, however, when /foo/bar.py and /foo/bar.py-baz/blergh.py exist.
+# Other method is to fake them by adding them to the portagefiles list:
+# | sed 's/.*\.py$/\0\n\0c\n\0o/' \
+
+[[ -w ~ ]] || { echo "cannot write to ~, help!"; exit 1; }
+
+# Generate $PRUNE
+echo "Developing list of potential false positives..." >&2
+prune_list
+
+( 
+	echo "/"
+	echo "Collecting files managed by Portage..." >&2
+	cat /var/db/pkg/*/*/CONTENTS \
+	| sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:;
+		s:^sym \(.*\) -> .\+ [[:digit:]]\+$:\1:;
+		s:^dir \(.*\)$:\1:"
+	echo "Collecting other files..." >&2
+	prune_files
+) \
+| sed 's/.*\.py$/\0\n\0c\n\0o/' \
+| (
+	# Symlink hell. There may be more. 
+	# Canonicalising with readlink takes too long.
+	sed -e "$(symlink_hell)"
+) \
+| sort -u \
+>~/.cruft/portagefiles
+
+echo "Finding files on your filesystem..." >&2
+if [[ "$1" == "--refine" && -r ~/.cruft/allfiles ]]; then
+	while read x; do
+		[[ -e "$x" ]] && echo "$x"
+	done < ~/.cruft/allfiles >~/.cruft/allfiles-new
+	mv ~/.cruft/allfiles-new ~/.cruft/allfiles
+else
+	find / '(' -false $(echo "$PRUNE_FHS" "$PRUNE_WWW" "$PRUNE_USERS" "$PRUNE_LOCAL" "$PRUNE_ADMIN" "$PRUNE_NOOWNER" "$PRUNE" | xargs -n 1 echo -or -path) \
+		')' -prune -or -print \
+	| sort -u \
+	>~/.cruft/allfiles
+fi
+
+echo "Comparing file lists..." >&2
+echo >&2
+comm -2 -3 ~/.cruft/allfiles ~/.cruft/portagefiles \
+| tee ~/.cruft/cruftfiles

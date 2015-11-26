@@ -1,0 +1,9 @@
+#!/bin/bash
+# mycat requires bashisms, so we can't be portable-sh here.
+source ~/bin/mycat.sh
+loadavg() {
+	mycat /proc/loadavg
+}
+if [ "${BASH_SOURCE}" = "$0" ]; then
+	loadavg "$@"
+fi

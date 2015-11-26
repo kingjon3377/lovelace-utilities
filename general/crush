@@ -1,0 +1,6 @@
+#!/bin/sed -f
+#
+# crush - Similar to the cat command, except it skips all lines that are
+#         empty or have only blanks and/or tabs in them.
+
+/^[	 ]*$/d
