@@ -1,2 +1,0 @@
-#! /bin/sh
-echo -e -n '\a' > /dev/tty
