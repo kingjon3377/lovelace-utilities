@@ -1,6 +1,6 @@
 #!/bin/sh
 rr_called_path=$_
-. ~/bin/recompress.sh || return 1
+. ${rr_called_path%/*}/recompress.sh || return 1
 recompress_recursive() {
 	# Usage: a filename or directory, followed by a list of extensions; if
 	# the filename matches any of the extensions, we call recompress on it.

@@ -1,7 +1,9 @@
 #!/bin/bash
 # This script has to be a Bash script because it uses process substitution, so
 # we use the more reliable method of sourceing-detection.
-. ~/bin/fbi_filter.sh
+# We also use the BASH_SOURCE variable to find the location of the fbi_filter script.
+. ${BASH_SOURCE[0]%/*}/fbi_filter.sh
+# TODO: source a config file that will define VIEWER
 check_image() {
 	VIEWER=${VIEWER:-fbi}
 	FAVORITES_FILE=${2:-favorites.txt}

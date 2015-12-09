@@ -1,6 +1,6 @@
 #!/bin/sh
 cvs_called_path=$_
-. ~/bin/play_possibly_remove.sh
+. ${cvs_called_path%/*}/play_possibly_remove.sh
 convert_videos() {
 	find . -xdev -name sermons -prune -o -type f -iname \*.flv -print | while read -r a; do
 		orig="${a}"

@@ -1,7 +1,7 @@
 #!/bin/sh
 ccm_called_path=$_
-. ~/bin/find_convertable_music.sh
-. ~/bin/play_possibly_remove.sh
+. ${ccm_called_path%/*}/find_convertable_music.sh
+. ${ccm_called_path%/*}/play_possibly_remove.sh
 convert_convertable_music() {
 	for a in $(find_convertable_music); do
 		orig="${a}"

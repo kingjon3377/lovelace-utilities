@@ -1,6 +1,6 @@
 #!/bin/sh
 vr_called_path=$_
-. ~/bin/v-if-possible.sh
+. ${vr_called_path%/*}/v-if-possible.sh
 v_recursive() {
 #	shopt -s -q nullglob
 	if [ -f "$1" ]; then
