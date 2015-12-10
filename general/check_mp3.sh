@@ -1,16 +1,31 @@
 #!/bin/sh
 cm_called_path=$_
+if [ "${cm_called_path}" = "$0" ]; then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
+        source "${HOME}/Library/Application Support/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+        source "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    else
+        MP3_PLAYER=/media/mp3
+        MUSIC_COLLECTION=/home/kingjon/music/favorites
+    fi
+fi
 check_mp3() {
-	if find /media/mp3 -maxdepth 0 -type d -empty | read -r; then
+	if find "${MP3_PLAYER}" -maxdepth 0 -type d -empty | read -r; then
 		echo "Player not mounted or empty"
 		return 1
 	fi
-	cd /media/mp3 || return 1
+	cd "${MP3_PLAYER}" || return 1
 	find ./*/ -type f | while read -r file;do
 		base="${file%.mp3}"
 		any=false
+        # TODO: Make extensions configurable; note that doing this without
+        # introducing shellcheck warnings would require an array, which is a
+        # bashism.
 		for ext in mp3 flac ogg wma rm m4a;do
-			if test -f "/home/kingjon/music/favorites/${base}.${ext}"; then
+			if test -f "${MUSIC_COLLECTION}/${base}.${ext}"; then
 				any=true
 				break
 			fi
@@ -19,7 +34,7 @@ check_mp3() {
 			echo "${file} no longer present in favorites"
 		fi
 	done
-	cd /home/kingjon/music/favorites || return 2
+	cd "${MUSIC_COLLECTION}" || return 2
 	find ./*/ -type f | while read -r file;do
 		case "${file}" in
 		*.mp3) target=${file} ;;
@@ -30,7 +45,7 @@ check_mp3() {
 		*.rm) target=${file%%.rm}.mp3 ;;
 		*) echo "Unhandled extension on ${file}"; continue ;;
 		esac
-		test -f "/media/mp3/${target}" || echo "${file} missing from player"
+		test -f "${MP3_PLAYER}/${target}" || echo "${file} missing from player"
 	done
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as

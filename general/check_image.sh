@@ -3,9 +3,19 @@
 # we use the more reliable method of sourceing-detection.
 # We also use the BASH_SOURCE variable to find the location of the fbi_filter script.
 . ${BASH_SOURCE[0]%/*}/fbi_filter.sh
-# TODO: source a config file that will define VIEWER
+# TODO: Should we source the config file unconditionally? If so, should we define VIEWER globally?
+if [ "${BASH_SOURCE}" = "$0" ];then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
+        source "${HOME}/Library/Application Support/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+        source "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    else
+        VIEWER=${VIEWER:-fbi}
+    fi
+fi
 check_image() {
-	VIEWER=${VIEWER:-fbi}
 	FAVORITES_FILE=${2:-favorites.txt}
 	ALL_FILE=${3:-all_images.txt}
 	if grep -q "${1}" "${FAVORITES_FILE}"; then
