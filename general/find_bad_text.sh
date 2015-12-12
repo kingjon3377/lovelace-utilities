@@ -9,7 +9,7 @@ find_bad_text() {
 			cmdline="${cmdline}-path ${dir} -prune -o "
 		done
 	fi
-	find "${base}" "${cmdline}" -type f -exec file -N {} + | gawk '
+	find "${base}" "${cmdline}" -type f -exec file -N '{}' + | gawk '
 		/: (HTML document, |)(ASCII|UTF-8 Unicode|ISO-8859) text(|, with very long lines)$/ { next }
 		/\.css: assembler source, ASCII text$/ { next }
 		/\.rtf: Rich Text Format data, version 1, ANSI$/ { next }
