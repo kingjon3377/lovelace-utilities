@@ -1,2 +1,0 @@
-#!/bin/sh
-svn diff --diff-cmd=/home/kingjon/bin/gvimdiff-svn-wrapper "$@"
