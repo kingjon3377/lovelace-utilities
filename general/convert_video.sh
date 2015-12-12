@@ -1,6 +1,6 @@
 #!/bin/sh
 cv_called_path=$_
-. ${cv_called_path%/*}/play_possibly_remove.sh
+. "${cv_called_path%/*}/play_possibly_remove.sh"
 convert_video() {
 	if [ $# -gt 1 ]; then
 		for arg in "$@";do

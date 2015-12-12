@@ -3,10 +3,10 @@ cm_called_path=$_
 if [ "${cm_called_path}" = "$0" ]; then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config"
+        . "${HOME}/Library/Application Support/lovelace-utilities/config"
     elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
             [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
-        source "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
     else
         MP3_PLAYER=/media/mp3
         MUSIC_COLLECTION=/home/kingjon/music/favorites

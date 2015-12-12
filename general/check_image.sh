@@ -2,7 +2,7 @@
 # This script has to be a Bash script because it uses process substitution, so
 # we use the more reliable method of sourceing-detection.
 # We also use the BASH_SOURCE variable to find the location of the fbi_filter script.
-. ${BASH_SOURCE[0]%/*}/fbi_filter.sh
+. "${BASH_SOURCE[0]%/*}/fbi_filter.sh"
 # TODO: Should we source the config file unconditionally? If so, should we define VIEWER globally?
 if [ "${BASH_SOURCE}" = "$0" ];then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
