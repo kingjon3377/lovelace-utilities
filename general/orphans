@@ -1,2 +1,0 @@
-#!/bin/sh
-deborphan --guess-perl --guess-python --guess-pike --guess-ruby --guess-section --guess-debug --guess-dev --guess-common --guess-data --guess-dummy -s --guess-doc
