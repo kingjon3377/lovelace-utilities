@@ -1,7 +1,0 @@
-#!/bin/sh
-sudo hibernate -f -k
-deallocvt
-for xx in "$@"
-do
-	sudo "/etc/init.d/${xx}" start
-done
