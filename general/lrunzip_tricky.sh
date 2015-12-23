@@ -8,7 +8,7 @@ lrunzip_tricky() {
 	${GLOBAL_LRUNZIP:-/usr/bin/lrunzip} -D "${1}" && return 0
 #	rm "$(dirname "${1}")"/"$(basename "${1}" .lrz)"
 	rm "${1%.lrz}"
-	${LOCAL_LRUNZIP:-/home/kingjon/lrzip/bin/lrunzip} -D "${1}"
+	${LOCAL_LRUNZIP:-${HOME}/lrzip/bin/lrunzip} -D "${1}"
 	return $?
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as

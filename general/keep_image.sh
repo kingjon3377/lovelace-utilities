@@ -1,5 +1,6 @@
 #!/bin/bash
 # Bash specified because we need a nonstandard echo flag.
+# TODO: Extract the zenity handling to a separate script/function?
 keep_image() {
 	for file in "$@";do
 		if test -n "${DISPLAY}"; then

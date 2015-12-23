@@ -1,5 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 called_path=$_
+if [ "${cm_called_path}" = "$0" ]; then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
+        . "${HOME}/Library/Application Support/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    else
+        EBOOK_INTERIM_STORAGE=${HOME}/ff-epub
+    fi
+fi
 to_kindle() {
 	dir=$(mktemp -d)
 	mtpfs "${dir}" || return 1
@@ -21,11 +32,11 @@ to_kindle() {
 						return 2; }
 			else
 				ebook-convert "${file}" \
-						"${HOME}/ff-epub/${base}.azw3" \
+						"${EBOOK_INTERIM_STORAGE}/${base}.azw3" \
 						|| \
 					{ echo "Failed to convert ${file}" 1>&2;
 						return 2; }
-				mv -i "${HOME}/ff-epub/${base}.azw3" \
+				mv -i "${EBOOK_INTERIM_STORAGE}/${base}.azw3" \
 						"${dir}/Books/${base}.azw3" ||
 					{ echo "Failed to transfer ${file}" 1>&2;
 						continue; }
@@ -40,5 +51,5 @@ to_kindle() {
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-# [ "${called_path}" = "$0" ] && to_kindle "$@"
-[ "${BASH_SOURCE}" = "$0" ] && to_kindle "$@"
+[ "${called_path}" = "$0" ] && to_kindle "$@"
+# [ "${BASH_SOURCE}" = "$0" ] && to_kindle "$@"

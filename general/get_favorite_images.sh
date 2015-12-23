@@ -1,11 +1,22 @@
 #!/bin/bash
 # The sourced file uses bashisms, and I think so do we here.
 . /home/kingjon/bin/keep_image.sh
+# TODO: Should we source the config file unconditionally? If so, should we define SOURCE_DIRECTORY etc. globally?
+if [ "${BASH_SOURCE}" = "$0" ];then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
+        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash" ]; then
+        source "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash"
+    else
+        SOURCE_DIRECTORY=${HOME}/media/photos
+        NEW_DIR=${HOME}/media/favorite_photos
+        RECORD=${NEW_DIR}/checked.txt
+        FAV_FILE=${NEW_DIR}/favorite_photos.txt
+    fi
+fi
 get_favorite_images() {
-	SOURCE_DIRECTORY=${SOURCE_DIRECTORY:-/home/kingjon/media/photos}
-	NEW_DIR=${NEW_DIR:-/home/kingjon/media/favorite_photos}
-	RECORD=${RECORD:-${NEW_DIR}/checked.txt}
-	FAV_FILE=${FAV_FILE:-${NEW_DIR}/favorite_photos.txt}
 	pushd "${SOURCE_DIRECTORY}" > /dev/null
 	mkdir -p "${NEW_DIR}"
 	PIPE=$(mktemp -u)
@@ -18,6 +29,7 @@ get_favorite_images() {
 		keep_image "${file}"
 		test -f "${file}" || continue
 		pushd "${NEW_DIR}" > /dev/null
+        # TODO: Make the following process, in both branches, more generic, to work with other dialog implmentations etc.
 		if test -n "${DISPLAY}"; then
 			width=$(identify -format "%w" "${file}"); width=$((width + 40))
 			height=$(identify -format "%h" "${file}"); height=$((height + 60))

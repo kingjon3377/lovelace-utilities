@@ -1,4 +1,5 @@
 #!/bin/sh
+# FIXME: Support git, at least
 synchronize_repo() {
 	if [ $# -ne 2 ]; then
 		echo "Usage: synchronize-repo hidden_repo_path hostname" 1>&2

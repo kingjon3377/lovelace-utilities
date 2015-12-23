@@ -1,5 +1,19 @@
 #!/bin/bash
 # We use bashisms (string substitutions), so we also use the less portable but more reliable way of detecting sourceing.
+# TODO: Should we source the config file unconditionally? If so, should we define MUSIC_COLLECTION etc. globally?
+if [ "${BASH_SOURCE}" = "$0" ];then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
+        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash" ]; then
+        source "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash"
+    else
+        MUSIC_COLLECTION=${HOME}/music
+        MUSIC_ROOT_DIRS=( choirs itunes sorted )
+        MUSIC_FAVORITES_DIRS=( favorites xmas easter )
+    fi
+fi
 move_if_exists() {
 	if [ -e "${1}" ]; then
 		test -d "${2%/*}" || mkdir -p "${2%/*}"
@@ -9,68 +23,47 @@ move_if_exists() {
 #		echo "Would move \"${1}\" to \"${2}\""
 }
 music_move() {
-	MUSIC_ROOT=${MUSIC_ROOT:-~/music}
 	if [ $# -ne 2 ]; then
 		echo "Usage: music_move SRC DEST"
 		echo "SRC and DEST both relative to music/ and the various collection-dirs."
 		return 1
 	fi
-	case "${1}" in 
-		music/*) music_move "${1/music\//}" "${2}" ; return $?;;
-		sorted/*) MAIN_SRC_BASE=sorted/ ; XMAS_SRC_BASE=./ ; SRC="${1/sorted\//}" ;;
-		itunes/*) MAIN_SRC_BASE=itunes/ ; XMAS_SRC_BASE=itunes/ ; SRC="${1/itunes\//}" ;;
-		choirs/*) MAIN_SRC_BASE=choirs/ ; XMAS_SRC_BASE=choirs/ ; SRC="${1/choirs\//}" ;;
-		*) echo "Source ${1} is outside what I know how to handle."; return 5 ;;
-	esac
-	case "${2}" in 
-		music/*) music_move "${1}" "${2/music\//}" ; return $?;;
-		sorted/*) MAIN_DEST_BASE=sorted/ ; XMAS_DEST_BASE=./ ; DEST="${2/sorted\//}" ;;
-		itunes/*) MAIN_DEST_BASE=itunes/ ; XMAS_DEST_BASE=itunes/ ; DEST="${2/itunes\//}" ;;
-		choirs/*) MAIN_DEST_BASE=choirs/ ; XMAS_DEST_BASE=choirs/ ; DEST="${2/choirs\//}" ;;
-		*) echo "Dest ${1} is outside what I know how to handle."; return 6 ;;
-	esac
-	if [ ! -e "${MUSIC_ROOT}/${MAIN_SRC_BASE}/${SRC}" ]; then
-		echo "Error: File ${MAIN_SRC_BASE}/${SRC} doesn't exist in the main collection, ${MUSIC_ROOT}."
+    BASE=$(realpath --relative-to="${HOME}" "${MUSIC_COLLECTION}")
+    SRC="${1##${BASE}}"
+    SRC="${SRC##/}"
+    DEST="${1##${BASE}}"
+    DEST="${DEST##/}"
+    for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
+        SRC="${SRC##${dir}}"
+        SRC="${SRC##/}"
+        DEST="${DEST##${dir}}"
+        DEST="${DEST##/}"
+    done
+	if [ ! -e "${MUSIC_COLLECTION}/${SRC}" ]; then
+		echo "Error: File ${SRC} doesn't exist in the main collection, ${MUSIC_COLLECTION}."
 		return 2
-	elif [ -f "${MUSIC_ROOT}/${MAIN_DEST_BASE}/${DEST}" ]; then
+	elif [ -f "${MUSIC_COLLECTION}/${DEST}" ]; then
 		echo "Error: Destination already exists in main collection; this would throw off the rest of the script. Exiting."
 		return 3
-	elif [ -d "${MUSIC_ROOT}/${MAIN_DEST_BASE}/${DEST}" ]; then
-		if test -d "${MUSIC_ROOT}/${MAIN_SRC_BASE}/${SRC}"; then
-			# Source and dest are both directories; proceed as normal.w
+	elif [ -d "${MUSIC_COLLECTION}/${DEST}" ]; then
+		if test -d "${MUSIC_COLLECTION}${SRC}"; then
+			# Source and dest are both directories; proceed as normal.
 			:
 		else
 			# Reassign DEST to be its original value plus the filename part of SRC.
 			# TODO: Handle many-sources-one-directory-destination case like mv.
-			DEST=${DEST}/"${SRC##*/}"
+			DEST="${DEST}/${SRC##*/}"
 		fi
 	fi
-	mv -i "${MUSIC_ROOT}/${MAIN_SRC_BASE}/${SRC}" "${MUSIC_ROOT}/${MAIN_DEST_BASE}/${DEST}" || \
+	mv -i "${MUSIC_COLLECTION}/${SRC}" "${MUSIC_COLLECTION}/${DEST}" || \
 		return $?
-	if [ -e "${MUSIC_ROOT}/favorites/${MAIN_SRC_BASE}/${SRC}" ]; then
-#		echo "Moving in favorites"
-		move_if_exists "${MUSIC_ROOT}/favorites/${MAIN_SRC_BASE}/${SRC}" \
-				"${MUSIC_ROOT}/favorites/${MAIN_DEST_BASE}/${DEST}" || \
-			return $?
-	fi
-	if [ -e "${MUSIC_ROOT}/easter/${MAIN_SRC_BASE}/${SRC}" ]; then
-#		echo "Moving in easter"
-		move_if_exists "${MUSIC_ROOT}/easter/${MAIN_SRC_BASE}/${SRC}" \
-				"${MUSIC_ROOT}/easter/${MAIN_DEST_BASE}/${DEST}" || \
-			return $?
-	fi
-	if [ -e "${MUSIC_ROOT}/xmas/${XMAS_SRC_BASE}/${SRC}" ]; then
-#		echo "Moving in xmas"
-		move_if_exists "${MUSIC_ROOT}/xmas/${XMAS_SRC_BASE}/${SRC}" \
-				"${MUSIC_ROOT}/xmas/${XMAS_DEST_BASE}/${DEST}" || \
-			return $?
-	fi
-	if [ -e "${MUSIC_ROOT}/favorites2/${MAIN_SRC_BASE}/${SRC}" ];then
-#		echo "moving in favorites2"
-		move_if_exists "${MUSIC_ROOT}/favorites2/${MAIN_SRC_BASE}/${SRC}" \
-				"${MUSIC_ROOT}/favorites2/${MAIN_DEST_BASE}/${DEST}" || \
-			return $?
-	fi
+    for dir in "${MUSIC_FAVORITES_DIRS[@]}"; do
+        if test -e "${MUSIC_COLLECTION}/${dir}/${SRC}"; then
+            move_if_exists "${MUSIC_COLLECTION}/${dir}/${SRC}" \
+                    "${MUSIC_COLLECTION}/${dir}/${DEST}" || \
+                return $?
+        fi
+    done
 }
 if [ "${BASH_SOURCE}" = "$0" ]; then
 	music_move "$@"

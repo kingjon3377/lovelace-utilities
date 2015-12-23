@@ -1,13 +1,28 @@
 #!/bin/sh
 called_path=$_
+if [ "${cm_called_path}" = "$0" ]; then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
+        . "${HOME}/Library/Application Support/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    else
+        MUSIC_COLLECTION_BASE=/home/kingjon/music
+        MUSIC_COLLECTION_FAVORITES=favorites
+        MUSIC_COLLECTION_XMAS=xmas
+        MUSIC_COLLECTION_EASTER=easter
+        # PLAYER_COMMAND=mplayer -novideo
+        PLAYER_COMMAND=mplayer
+    fi
+fi
 play_five_favorites() {
 	ORIG_PWD="${PWD}"
-	cd ~/music || return
+	cd "${MUSIC_COLLECTION_BASE}" || return
 	local DATE
 	local XMAS
 	local FAVORITES
 	local PLAYER_COMMAND
-	local VIDEO
 	local REPS
 	usage() {
 		echo 'Usage: play_five_favorites [[--][no[-]]remove] [[--][no]xmas] [[--][no[-]]video] [COUNT]' 
@@ -15,9 +30,8 @@ play_five_favorites() {
 		echo '	noremove --noremove no-remove --no-remove: Do not remove any files.' 
 		echo '	remove --remove: Ask after each file whether to remove it (default).' 
 		echo '	xmas --xmas christmas --christmas: Play from Christmas collection (default in Christmastide).'
+        echo '  easter --easter: Play from Easter collection.'
 		echo '	noxmas --noxmas nochristmas --nochristmas: Play from favorites (default in other seasons).'
-		echo '	video --video: If a file includes video, play it as well as the audio.'
-		echo '	novideo --novideo no-video --no-video: Play audio only for all files (default).'
 		echo '	COUNT: How many files to play (5 by default).'
 	}
 	while [ $# -gt 0 ];do
@@ -28,8 +42,6 @@ play_five_favorites() {
 			remove | --remove) REMOVE=true ;;
 			easter | --easter) XMAS=false EASTER=true ;;
 			--noeaster | noeaster) EASTER=false ;;
-			video | --video) VIDEO=true ;;
-			novideo | --novideo | no-video | --no-video) VIDEO=false ;;
 			[0-9]*) REPS=${1} ;;
 			*) usage ; return 1;;
 		esac
@@ -42,17 +54,13 @@ play_five_favorites() {
 		XMAS=${XMAS:-false}
 	fi
 	if [ ${XMAS} = true ]; then
-		FAVORITES=xmas
+		FAVORITES=${MUSIC_COLLECTION_XMAS}
 	elif [ ${EASTER:-false} = true ]; then
-		FAVORITES=easter
+		FAVORITES=${MUSIC_COLLECTION_EASTER}
 	else
-		FAVORITES=favorites
+		FAVORITES=${MUSIC_COLLECTION_FAVORITES}
 	fi
-	if [ ${VIDEO:-false} = true ]; then
-		PLAYER_COMMAND="mplayer"
-	else
-		PLAYER_COMMAND="mplayer -novideo"
-	fi
+    PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
 	# We add a sort command to force one list ... I think that because of
 	# buffering, some files were getting played twice
 	file_list=$(find ${FAVORITES} -type f | sort | shuf -n "${REPS:-5}")

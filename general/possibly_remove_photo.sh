@@ -1,5 +1,6 @@
 #!/bin/sh
 called_path=$_
+# TODO: What if DISPLAY unset?
 possibly_remove_photo() {
 	for a in "$@"; do
 		xzgv "${a}" &

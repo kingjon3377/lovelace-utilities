@@ -1,11 +1,22 @@
 #!/bin/sh
 stm_called_path=$_
+if [ "${cm_called_path}" = "$0" ]; then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
+        . "${HOME}/Library/Application Support/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    else
+        MP3_PLAYER=/media/mp3
+    fi
+fi
 send_to_mp3() {
 	for file in "$@";do
-		test -d "/media/mp3/${file%/*}" || mkdir -p "/media/mp3/${file%/*}"
+		test -d "${MP3_PLAYER}/${file%/*}" || mkdir -p "${MP3_PLAYER}/${file%/*}"
 		test -f "${file}" || continue
 		case "${file}" in
-		*mp3) test -f /media/mp3/"${file}" && continue; cp -i "${file}" /media/mp3/"${file}"; continue ;;
+		*mp3) test -f "${MP3_PLAYER}/${file}" && continue; cp -i "${file}" "${MP3_PLAYER}/${file}"; continue ;;
 		*wma) base=${file%%.wma} ;;
 		*m4a) base=${file%%.m4a} ;;
 		*ogg) base=${file%%.ogg} ;;
@@ -13,9 +24,9 @@ send_to_mp3() {
 		*.rm) base=${file%%.rm} ;;
 		*) echo "Unhandled extension on ${file}" ; continue ;;
 		esac
-		test -f "/media/mp3/${base}.mp3" && continue
+		test -f "${MP3_PLAYER}/${base}.mp3" && continue
 #		ffmpeg -i "${file}" -vn -acodec mp2 /media/mp3/"${base}.mp3"
-		ffmpeg -i "${file}" -vn /media/mp3/"${base}.mp3"
+		ffmpeg -i "${file}" -vn "${MP3_PLAYER}/${base}.mp3"
 	done
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as

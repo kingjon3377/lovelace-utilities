@@ -1,13 +1,28 @@
 #!/bin/sh
 called_path=$_
+if [ "${cm_called_path}" = "$0" ]; then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
+        . "${HOME}/Library/Application Support/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    else
+        MUSIC_COLLECTION_BASE=/home/kingjon/music
+        MUSIC_COLLECTION_FAVORITES=favorites
+        MUSIC_COLLECTION_XMAS=xmas
+        MUSIC_COLLECTION_EASTER=easter
+        # PLAYER_COMMAND=mplayer -novideo
+        PLAYER_COMMAND=mplayer
+    fi
+fi
 play_all_favorites() {
 	ORIG_PWD="${PWD}"
-	cd ~/music || return
+	cd "${MUSIC_COLLECTION_BASE}" || return
 	local DATE
 	local XMAS
-	local FAVORITES
 	local PLAYER_COMMAND
-	local VIDEO
+	local FAVORITES
 	while [ $# -gt 0 ];do
 		case "${1}" in
 			noremove | --noremove | no-remove | --no-remove) REMOVE=false ;;
@@ -16,8 +31,6 @@ play_all_favorites() {
 			remove | --remove) REMOVE=true ;;
 			easter | --easter) XMAS=false EASTER=true ;;
 			--noeaster | noeaster) EASTER=false ;;
-			video | --video) VIDEO=true ;;
-			novideo | --novideo | no-video | --no-video) VIDEO=false ;;
 		esac
 		shift
 	done
@@ -28,17 +41,13 @@ play_all_favorites() {
 		XMAS=${XMAS:-false}
 	fi
 	if [ ${XMAS} = true ]; then
-		FAVORITES=xmas
+		FAVORITES=${MUSIC_COLLECTION_XMAS}
 	elif [ ${EASTER:-false} = true ]; then
-		FAVORITES=easter
+		FAVORITES=${MUSIC_COLLECTION_EASTER}
 	else
-		FAVORITES=favorites
+		FAVORITES=${MUSIC_COLLECTION_FAVORITES}
 	fi
-	if [ ${VIDEO:-false} = true ]; then
-		PLAYER_COMMAND="mplayer"
-	else
-		PLAYER_COMMAND="mplayer -novideo"
-	fi
+    PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
 	# We add a sort command to force one list ... I think that because of
 	# buffering, some files were getting played twice
 	file_list=$(find ${FAVORITES} -type f | sort | shuf)

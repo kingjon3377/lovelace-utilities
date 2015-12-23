@@ -1,5 +1,19 @@
 #!/bin/sh
 called_path=$_
+# TODO: Should we source the config file unconditionally? If so, should we define MUSIC_COLLECTION etc. globally?
+if [ "${BASH_SOURCE}" = "$0" ];then
+    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
+            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
+        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
+    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash" ]; then
+        source "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash"
+    else
+        MUSIC_COLLECTION=/home/kingjon/music
+        MUSIC_ROOT_DIRS=( choirs itunes sorted )
+        MUSIC_FAVORITES_DIRS=( favorites xmas easter )
+    fi
+fi
 fml_link() {
 	if [ -n "${VERBOSE}" ];then
 		echo "Linking ${1} to ${2}"
@@ -8,30 +22,14 @@ fml_link() {
 }
 fix_music_links() {
 	ORIG_PWD="${PWD}"
-	cd ~/music || return
-	for dir in favorites/sorted xmas easter/sorted ; do
-		regex="s:^Files ${dir}/\([^ ]*\) and sorted/\1 differ\$:\1:"
-		for file in $(diff -rq ${dir} sorted|grep -v "^Only in sorted"|\
-				grep -v '^Only in xmas: itunes$' |\
-				grep -v '^Only in xmas: choirs$' |\
-				sed -e "${regex}");do 
-			fml_link "sorted/${file}" "${dir}/${file}"
-		done
-	done
-	for dir in xmas/itunes favorites/itunes easter/itunes;do
-		regex="s:^Files ${dir}/\([^ ]*\) and itunes/\1 differ\$:\1:"
-		for file in $(diff -rq ${dir} itunes|\
-				grep -v "^Only in itunes[:/]"|\
-				sed -e "${regex}");do
-			fml_link "itunes/${file}" "${dir}/${file}"
-		done
-	done
-	for dir in xmas/choirs favorites/choirs easter/choirs ;do
-		regex="s:^Files ${dir}/\([^ ]*\) and choirs/\1 differ\$:\1:"
-		for file in $(diff -rq ${dir} choirs|\
-				grep -v "^Only in choirs[:/]"|\
-				sed -e "${regex}");do
-			fml_link "choirs/${file}" "${dir}/${file}"
+	cd "${MUSIC_COLLECTION}" || return
+    for root_dir in "${MUSIC_ROOT_DIRS[@]}"; do
+        for favorite_dir in "${MUSIC_FAVORITES_DIRS[@]}"; do
+            regex="s:^Files ${favorite_dir}/${root_dir}/\([^ ]*\) and ${root_dir}/\1 differ\$:\1:"
+            for file in $(diff -rq "${root_dir}" "${favorite_dir}/${root_dir}"|grep -v "^Only in ${root_dir}"|\
+                    sed -e "${regex}");do
+                fml_link "${root_dir}/${file}" "${favorite_dir}/${root_dir}/${file}"
+            done
 		done
 	done
 	cd "${ORIG_PWD}" || return
