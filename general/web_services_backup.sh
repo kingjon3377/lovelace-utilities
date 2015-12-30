@@ -5,10 +5,10 @@ if [ "${BASH_SOURCE}" = "$0" ];then
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
         OPEN=open
         . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
+    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
         OPEN=xdg-open
-        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
     else
         WGET="wget --progress=dot"
     fi

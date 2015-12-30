@@ -4,9 +4,9 @@ if [ "${cm_called_path}" = "$0" ]; then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
         . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
-        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
+        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
     else
         # To avoid trying to push to read-only Hg and git repos, we grep for our username in the URLs.
         # TODO: Find a better heuristic: probably ssh vs. https clone URLs?

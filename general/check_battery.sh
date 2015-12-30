@@ -4,9 +4,9 @@ if [ "${BASH_SOURCE}" = "$0" ];then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
         source "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
-        source "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
+        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
     else
         BATT_DIR=${BATT_DIR:-/sys/class/power_supply/BAT1}
         BATT_STATUS_FILE=${BATT_STATUS_FILE:-${BATT_DIR}/status}

@@ -6,9 +6,9 @@ if [ "${BASH_SOURCE}" = "$0" ];then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
         source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME}/lovelace-utilities/config-bash"
+    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
+        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
     else
         CONT_PROGS=( nonexistentprogram )
     fi

@@ -4,9 +4,9 @@ if [ "${cm_called_path}" = "$0" ]; then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
         . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME}" ] && [ -d "${XDG_CONFIG_HOME}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME}/lovelace-utilities/config" ]; then
-        . "${XDG_CONFIG_HOME}/lovelace-utilities/config"
+    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
+            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
+        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
     else
         MP3_PLAYER=/media/mp3
         MUSIC_COLLECTION=/home/kingjon/music/favorites
