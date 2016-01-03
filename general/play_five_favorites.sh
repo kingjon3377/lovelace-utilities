@@ -1,22 +1,16 @@
 #!/bin/sh
-called_path=$_
-if [ "${cm_called_path}" = "$0" ]; then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
-        . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
-        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
-    else
-        MUSIC_COLLECTION_BASE=/home/kingjon/music
-        MUSIC_COLLECTION_FAVORITES=favorites
-        MUSIC_COLLECTION_XMAS=xmas
-        MUSIC_COLLECTION_EASTER=easter
-        # PLAYER_COMMAND=mplayer -novideo
-        PLAYER_COMMAND=mplayer
-    fi
-fi
+cm_called_path=$_
+. "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 play_five_favorites() {
+    lovelace_utilities_source_config
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        MUSIC_COLLECTION_BASE=${MUSIC_COLLECTION_BASE:-/home/kingjon/music}
+        MUSIC_COLLECTION_FAVORITES=${MUSIC_COLLECTION_FAVORITES:-favorites}
+        MUSIC_COLLECTION_XMAS=${MUSIC_COLLECTION_XMAS:-xmas}
+        MUSIC_COLLECTION_EASTER=${MUSIC_COLLECTION_EASTER:-easter}
+        # PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer -novideo}
+        PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
+    fi
 	ORIG_PWD="${PWD}"
 	cd "${MUSIC_COLLECTION_BASE}" || return
 	local DATE

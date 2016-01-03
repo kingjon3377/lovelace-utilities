@@ -1,8 +1,10 @@
 #!/bin/sh
-# Because we don't want this to be executed, we don't do any setup-sourcing
-# here. However, we expect you to define a function project_name_to_id (we'll
-# alias true to that if not) and set TRACKER_TOKEN in your environment.
+# Unlike most scripts in this collection, we don't define reasonable defaults
+# for the configuration variables: the function project_name_to_id defaults to
+# an alias for true, and TRACKER_TOKEN defaults to invalidtoken
+. "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 submit_to_tracker() {
+    lovelace_utilities_source_config
 	if test $# -lt 5; then
 		echo "Usage: submit_to_tracker project type points tags name [state] [desc]" 1>&2
 		return 1

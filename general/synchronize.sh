@@ -1,19 +1,13 @@
 #!/bin/bash
 # Shell arrays are a bashism, so we use the nonportable but more reliable way
-# of detecting sourceing.
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
-    else
+# of detecting the script's location
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
+synchronize() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
         DIRS_TO_SYNC=(  )
         HOSTS_TO_SYNC=( )
     fi
-fi
-synchronize() {
 #	case $(hostname) in
 #	myrriddium)
 	[ -n "${DISPLAY}" ] && [ -z "${GRAPHICAL_SYNC}" ] && local DISPLAY=""

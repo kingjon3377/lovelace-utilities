@@ -1,5 +1,6 @@
 #!/bin/bash
 # We use bash arrays for Wordpress blogs, etc.
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 if [ "${BASH_SOURCE}" = "$0" ];then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
@@ -13,24 +14,39 @@ if [ "${BASH_SOURCE}" = "$0" ];then
         WGET="wget --progress=dot"
     fi
 fi
-WGET="wget --progress=dot"
 backup_goodreads() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
 	# Cookies extracted from Firefox by hand.
 #	${WGET} -O "${HOME}/cabinet/web_services/goodreads.csv"
 #		'https://www.goodreads.com/review_porter/goodreads_export.csv' \
 #		--header='Cookie:cookieval' \
-#	${OPEN} 'https://www.goodreads.com/review_porter/goodreads_export.csv'
-	${OPEN} 'https://www.goodreads.com/review/import'
+#	${LOVELACE_OPEN} 'https://www.goodreads.com/review_porter/goodreads_export.csv'
+	${LOVELACE_OPEN} 'https://www.goodreads.com/review/import'
 }
 # Note that this doesn't (yet) support WP blogs outside wordpress.com
 backup_wordpress() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+        WORDPRESS_BLOGS=(  )
+    fi
 	# TODO: get cookies to entirely automate this
     for blog in "${WORDPRESS_BLOGS[@]}"; do
         #	${WGET} -O "${blog}.wordpress.$(date +%Y-%m_%d).xml" \
-            ${OPEN} "https://${blog}.wordpress.com/wp-admin/export.php?type=export&download=true&content=all"
+            ${LOVELACE_OPEN} "https://${blog}.wordpress.com/wp-admin/export.php?type=export&download=true&content=all"
     done
 }
 backup_librarything() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
 	#cookie=$(mktemp)
 	# Cookies generated using LibraryThing.sh, in third_party, with the cleanup line at the end commented out.
 	LT_CKSUM=${LT_CKSUM:-invalid}
@@ -40,23 +56,48 @@ backup_librarything() {
 		--header="Cookie: cookie_userchecksum=${LT_CKSUM};cookie_usernum=${LT_UNUM};cookie_userid=${LT_UID}"
 }
 backup_delicious() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
 #	xdg-open 'http://export.delicious.com/settings/bookmarks/export'
-	${OPEN} 'https://delicious.com/settings/manage'
+	${LOVELACE_OPEN} 'https://delicious.com/settings/manage'
 	# If that doesn't work, use <https://delicious.com/settings/manage>
 	# instead, since it seems to require that as a referrer.
 }
 backup_diigo() {
-	${OPEN} 'https://www.diigo.com/tools/export'
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
+	${LOVELACE_OPEN} 'https://www.diigo.com/tools/export'
 }
 backup_facebook() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
 	FB_DYI_KEY=${FB_DYI_KEY:-invalid}
-	${OPEN} "https://www.facebook.com/dyi?x=${FB_DYI_KEY}"
-	${OPEN} 'https://apps.facebook.com/give_me_my_data/'
+	${LOVELACE_OPEN} "https://www.facebook.com/dyi?x=${FB_DYI_KEY}"
+	${LOVELACE_OPEN} 'https://apps.facebook.com/give_me_my_data/'
 }
 backup_gmail() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
 	offlineimap
 }
 backup_tracker() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
 	tmpfile=$(mktemp)
 	curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalid}" -X GET \
 			https://www.pivotaltracker.com/services/v5/projects | \
@@ -64,13 +105,18 @@ backup_tracker() {
 			grep '"id"' | sed 's/^[   ]*"id": \([0-9]*\),$/\1/' | \
 			cat - "${PIVOTAL_PROJECTS:-${HOME}/tracker_projects_list}" | sort -u | \
 			tee "${tmpfile}" | while read project;do
-		${OPEN} "https://www.pivotaltracker.com/projects/${project}/export"
+		${LOVELACE_OPEN} "https://www.pivotaltracker.com/projects/${project}/export"
 		sleep 1
 	done
 	mv "${tmpfile}" "${PIVOTAL_PROJECTS:-${HOME}/tracker_projects_list}"
 }
 backup_simplenote() {
-	${OPEN} 'http://simplenote-export.appspot.com/'
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        WGET="${WGET:-wget --progress=dot}"
+        LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+    fi
+	${LOVELACE_OPEN} 'http://simplenote-export.appspot.com/'
 }
 backup_web_services() {
 	backup_goodreads && backup_librarything && backup_delicious && \

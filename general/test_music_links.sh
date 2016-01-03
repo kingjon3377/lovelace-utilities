@@ -1,20 +1,12 @@
 #!/bin/bash
-called_path=$_
-# TODO: Should we source the config file unconditionally? If so, should we define MUSIC_COLLECTION etc. globally?
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
-    else
-        MUSIC_COLLECTION=/home/kingjon/music
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
+test_music_links() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        MUSIC_COLLECTION=${MUSIC_COLLECTION:-${HOME}/music}
         MUSIC_ROOT_DIRS=( choirs itunes sorted )
         MUSIC_FAVORITES_DIRS=( favorites xmas easter )
     fi
-fi
-test_music_links() {
 	OLD_PWD="${PWD}"
 	cd "${MUSIC_COLLECTION}" || return
     for root_dir in "${MUSIC_ROOT_DIRS[@]}"; do
@@ -28,7 +20,7 @@ test_music_links() {
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE}" = "$0" ]; then
+#if [ "${called_path}" = "$0" ]; then
+if [ "${BASH_SOURCE}" = "$0" ]; then
         test_music_links "$@"
 fi

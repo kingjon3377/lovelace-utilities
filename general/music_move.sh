@@ -1,19 +1,6 @@
 #!/bin/bash
-# We use bashisms (string substitutions), so we also use the less portable but more reliable way of detecting sourceing.
-# TODO: Should we source the config file unconditionally? If so, should we define MUSIC_COLLECTION etc. globally?
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
-    else
-        MUSIC_COLLECTION=${HOME}/music
-        MUSIC_ROOT_DIRS=( choirs itunes sorted )
-        MUSIC_FAVORITES_DIRS=( favorites xmas easter )
-    fi
-fi
+# We use bashisms (string substitutions), so we also use the less portable but more reliable way of detecting our directory
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 move_if_exists() {
 	if [ -e "${1}" ]; then
 		test -d "${2%/*}" || mkdir -p "${2%/*}"
@@ -23,6 +10,12 @@ move_if_exists() {
 #		echo "Would move \"${1}\" to \"${2}\""
 }
 music_move() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        MUSIC_COLLECTION=${MUSIC_COLLECTION:-${HOME}/music}
+        MUSIC_ROOT_DIRS=${MUSIC_ROOT_DIRS:-( choirs itunes sorted )}
+        MUSIC_FAVORITES_DIRS=${MUSIC_FAVORITES_DIRS:-( favorites xmas easter )}
+    fi
 	if [ $# -ne 2 ]; then
 		echo "Usage: music_move SRC DEST"
 		echo "SRC and DEST both relative to music/ and the various collection-dirs."

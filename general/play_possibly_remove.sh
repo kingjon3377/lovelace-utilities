@@ -1,19 +1,8 @@
 #!/bin/sh
-called_path=$_
-# TODO: Should we source the config file unconditionally? If so, should we define PLAYER_COMMAND globally?
-if [ "${cm_called_path}" = "$0" ]; then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
-        . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
-        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
-    else
-        PLAYER_COMMAND="mplayer -vo x11"
-        # PLAYER_COMMAND="mplayer -novideo"
-    fi
-fi
+cm_called_path=$_
+. "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 play_possibly_remove() {
+    lovelace_utilities_source_config
     local PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer -novideo}
 	for a in "$@"; do
 		${PLAYER_COMMAND} "${a}" && rm -i "${a}"

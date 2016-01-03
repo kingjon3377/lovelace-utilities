@@ -2,8 +2,8 @@
 rc_called_path=$_
 if [ -f ${rc_called_path%/*}/z-if-possible.sh  ];then
     . ${rc_called_path%/*}/z-if-possible.sh
-elif [ -f ~/bin/z-if-possible.sh ];then
-	. ~/bin/z-if-possible.sh || return 2
+elif [ -f ${HOME}/bin/z-if-possible.sh ];then
+	. ${HOME}/bin/z-if-possible.sh || return 2
 elif [ -f /usr/local/bin/z-if-possible.sh ];then
 	. /usr/local/bin/z-if-possible.sh || return 2
 else

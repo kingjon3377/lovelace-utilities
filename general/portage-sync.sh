@@ -1,5 +1,4 @@
 #!/bin/bash
-called_path=$_
 if [ "${BASH_SOURCE}" != "$0" ]; then
 #if [ "${called_path}" != "$0" ]; then
         echo "Don\'t source this!"

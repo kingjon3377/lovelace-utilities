@@ -1,15 +1,10 @@
 #!/bin/sh
 # We want to use a bashism, a shell array, below, so we use the nonportable but
-# more reliable way of detecting sourceing.
-# TODO: Should we source the config file unconditionally? If so, should we define IO_IMPORTANT_PROGRAMS globally?
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
-    else
+# more reliable way of detecting the script's directory
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
+ionice_important() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
         IO_IMPORTANT_PROGRAMS=( X Xorg xfwm4 gnome-terminal screen xfce4-notifyd xfce4-session xfconfd 
                                 xfce4-panel xfdesktop xfce4-power-manager xfce4-clipman xfce4-mixer-plugin
                                 xfce4-sensors-plugin xfce4-cpufreq-plugin xfce4-power-manager xfsettingsd
@@ -18,8 +13,6 @@ if [ "${BASH_SOURCE}" = "$0" ];then
                                 mate-power-manager mate-settings-daemon pekwm links mate-terminal
                                 gnome-pty-helper )
     fi
-fi
-ionice_important() {
 	sudo ionice -c 1 -p $(pidof "${IO_IMPORTANT_PROGRAMS[@]}")
 }
 if [ "${BASH_SOURCE}" = "$0" ]; then

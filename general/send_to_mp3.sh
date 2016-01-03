@@ -1,17 +1,11 @@
 #!/bin/sh
 stm_called_path=$_
-if [ "${cm_called_path}" = "$0" ]; then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
-        . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
-        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
-    else
-        MP3_PLAYER=/media/mp3
-    fi
-fi
+. "${stm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 send_to_mp3() {
+    lovelace_utilities_source_config
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        MP3_PLAYER=${MP3_PLAYER:-/media/mp3}
+    fi
 	for file in "$@";do
 		test -d "${MP3_PLAYER}/${file%/*}" || mkdir -p "${MP3_PLAYER}/${file%/*}"
 		test -f "${file}" || continue
@@ -25,11 +19,11 @@ send_to_mp3() {
 		*) echo "Unhandled extension on ${file}" ; continue ;;
 		esac
 		test -f "${MP3_PLAYER}/${base}.mp3" && continue
-#		ffmpeg -i "${file}" -vn -acodec mp2 /media/mp3/"${base}.mp3"
+#		ffmpeg -i "${file}" -vn -acodec mp2 "${MP3_PLAYER}/mp3/"${base}.mp3"
 		ffmpeg -i "${file}" -vn "${MP3_PLAYER}/${base}.mp3"
 	done
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-#[ "${stm_called_path}" = "$0" ] && send_to_mp3 "$@"
-[ "${BASH_SOURCE}" = "$0" ] && send_to_mp3 "$@"
+[ "${stm_called_path}" = "$0" ] && send_to_mp3 "$@"
+#[ "${BASH_SOURCE}" = "$0" ] && send_to_mp3 "$@"

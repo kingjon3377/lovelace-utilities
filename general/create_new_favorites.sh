@@ -1,6 +1,7 @@
 #!/bin/bash
 # We use bashisms, namely bash arrays, so we use the more reliable but
-# nonportable method of detecting sourceing.
+# nonportable method of detecting this script's directory
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 # TODO: Should we source the config file unconditionally? If so, should we define MUSIC_COLLECTION etc. globally?
 if [ "${BASH_SOURCE}" = "$0" ];then
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
@@ -10,15 +11,18 @@ if [ "${BASH_SOURCE}" = "$0" ];then
             [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
         source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
     else
-        MUSIC_COLLECTION=/home/kingjon/music
-        MUSIC_ROOT_DIRS=( choirs itunes sorted )
-        MUSIC_FAVORITES_DIR=${MUSIC_COLLECTION}/favorites
-        MUSIC_COLLECTION_RECORD=${MUSIC_COLLECTION}/checked.txt
-        PLAYER_COMMAND=mplayer
     fi
 fi
 # TODO: Make a way to handle multiple 'favorites' directories (e.g. favorites, easter, xmas) at once
 create_new_favorites() {
+    lovelace_utilities_source_config_bash
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+        MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
+        MUSIC_ROOT_DIRS=( choirs itunes sorted )
+        MUSIC_FAVORITES_DIR=${MUSIC_FAVORITES_DIR:-${MUSIC_COLLECTION}/favorites}
+        MUSIC_COLLECTION_RECORD=${MUSIC_COLLECTION_RECORD:-${MUSIC_COLLECTION}/checked.txt}
+        PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
+    fi
 	pushd "${MUSIC_COLLECTION}" > /dev/null
 	mkdir -p "${MUSIC_FAVORITES_DIR}"
 	PIPE=$(mktemp -u)
