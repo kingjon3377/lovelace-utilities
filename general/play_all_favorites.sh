@@ -44,7 +44,7 @@ play_all_favorites() {
     PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
 	# We add a sort command to force one list ... I think that because of
 	# buffering, some files were getting played twice
-	file_list=$(find ${FAVORITES} -type f | sort | shuf)
+	file_list=$(find "${FAVORITES}" -type f | sort | shuf)
 	if [ ${REMOVE:-true} = true ]; then
 		count=$(echo "${file_list}" | wc -l)
 		curr=0
@@ -61,7 +61,7 @@ play_all_favorites() {
 
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
+if [ "${cm_called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE}" = "$0" ]; then
         play_all_favorites "$@"
 fi

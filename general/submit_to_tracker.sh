@@ -1,8 +1,10 @@
-#!/bin/sh
+#!/bin/bash
+# We use a few bashisms below, according to shellcheck (type, [[ =~ ]], etc.)
+
 # Unlike most scripts in this collection, we don't define reasonable defaults
 # for the configuration variables: the function project_name_to_id defaults to
 # an alias for true, and TRACKER_TOKEN defaults to invalidtoken
-. "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 submit_to_tracker() {
     lovelace_utilities_source_config
 	if test $# -lt 5; then

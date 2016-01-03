@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # We want to use a bashism, a shell array, below, so we use the nonportable but
 # more reliable way of detecting the script's directory
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"

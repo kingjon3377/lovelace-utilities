@@ -11,7 +11,7 @@ if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
     MUSIC_ROOT_DIRS=( choirs itunes sorted )
 fi
 setup() {
-	find "${MUSIC_ROOT_DIRS[@]/#/${MUSIC_COLLECTION}/}" -type d | while read a; do
+	find "${MUSIC_ROOT_DIRS[@]/#/${MUSIC_COLLECTION}/}" -type d | while read -r a; do
 		pushd "${a}" > /dev/null
 	done
 	until [ -e .bookmark ]; do

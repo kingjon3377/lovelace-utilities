@@ -48,7 +48,7 @@ chroot_wrapper() {
 		mount --rbind /var/lib/layman "$CHROOT_DIR"/var/lib/layman
 	fi
 	if [ -d "${CHROOT_DIR}"/usr/src/linux ] && \
-			[ $(find "${CHROOT_DIR}/usr/src/linux" | wc -l) -eq 1 ];then
+			[ "$(find "${CHROOT_DIR}/usr/src/linux" | wc -l)" -eq 1 ];then
 		LINUX_SRC_MOUNTED="true"
 		mount --rbind /usr/src/linux "${CHROOT_DIR}/usr/src/linux"
 	fi

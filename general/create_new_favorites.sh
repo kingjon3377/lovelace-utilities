@@ -2,17 +2,6 @@
 # We use bashisms, namely bash arrays, so we use the more reliable but
 # nonportable method of detecting this script's directory
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
-# TODO: Should we source the config file unconditionally? If so, should we define MUSIC_COLLECTION etc. globally?
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
-    else
-    fi
-fi
 # TODO: Make a way to handle multiple 'favorites' directories (e.g. favorites, easter, xmas) at once
 create_new_favorites() {
     lovelace_utilities_source_config_bash

@@ -57,7 +57,7 @@ play_five_favorites() {
     PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
 	# We add a sort command to force one list ... I think that because of
 	# buffering, some files were getting played twice
-	file_list=$(find ${FAVORITES} -type f | sort | shuf -n "${REPS:-5}")
+	file_list=$(find "${FAVORITES}" -type f | sort | shuf -n "${REPS:-5}")
 	if [ ${REMOVE:-true} = true ]; then
 		for a in ${file_list}; do
 			${PLAYER_COMMAND} "${a}" && rm -i "${a}"
@@ -70,7 +70,7 @@ play_five_favorites() {
 
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
+if [ "${cm_called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE}" = "$0" ]; then
         play_five_favorites "$@"
 fi

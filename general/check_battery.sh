@@ -10,8 +10,7 @@ check_battery() {
         BATT_EN_NOW_FILE=${BATT_EN_NOW_FILE:-${BATT_DIR}/energy_now}
         BATT_EN_FULL_FILE=${BATT_EN_FULL_FILE:-${BATT_DIR}/energy_full}
     fi
-    SYS_DIR=/sys/class/power_supply/BAT1
-    bat_status=$(cat "${BATT_STATUS_FILE}"})
+    bat_status=$(cat "${BATT_STATUS_FILE}")
     en_now=$(cat "${BATT_EN_NOW_FILE}")
     en_full=$(cat "${BATT_EN_FULL_FILE}")
     percentage=$(echo "${en_now}" / "${en_full}" '*' 100 | bc -l | sed 's/\..*//')
