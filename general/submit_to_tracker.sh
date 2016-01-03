@@ -23,16 +23,17 @@ submit_to_tracker() {
 	if test ${proj_ret} -ne 0; then return ${proj_ret};fi
 	local STORY_TYPE=${STORY_TYPE:-${2}}
 	local POINTS=${POINTS:-${3}}
-    if [[ "$(declare -p PROJECTS_WITHOUT_CHORE_PTS)" =~ "declare -a" ]]; then
-        for proj in "${PROJECTS_WITHOUT_CHORE_PTS[@]}";do
-            if test "${PROJECT}" = "${proj}" -a \
-                    "${STORY_TYPE}" = "chore" -a \
-                    -n "${POINTS}" -a "${POINTS}" != "0"; then
-		        echo "Project ${PROJECT} doesn't support chores with point values" 1>&2
-		        return 3
-	        fi
-        done
-    fi
+    case "$(declare -p PROJECTS_WITHOUT_CHORE_PTS)" in
+        "declare -a"*)
+            for proj in "${PROJECTS_WITHOUT_CHORE_PTS[@]}";do
+                if test "${PROJECT}" = "${proj}" -a \
+                        "${STORY_TYPE}" = "chore" -a \
+                        -n "${POINTS}" -a "${POINTS}" != "0"; then
+		            echo "Project ${PROJECT} doesn't support chores with point values" 1>&2
+		            return 3
+	            fi
+            done ;;
+    esac
 	local TAGS="${TAGS:-${4}}"
 	local STORY_NAME="${STORY_NAME:-${5}}"
 	local STATE="${STATE:-${6}}"
