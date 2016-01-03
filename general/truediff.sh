@@ -5,14 +5,14 @@ truediff() {
 	file_two="${2}"
 	if diff "${file_one}" "${file_two}" ; then
 		return 0
-	elif [ \( ! -f "${file_one}" \) -o \( ! -f "${file_two}" \) ]; then
+	elif [ \( ! -f "${file_one}" \) ] || [  \( ! -f "${file_two}" \) ]; then
 		return 1
 #	elif [ \( "$(basename "${file_one}" .gz)" != \
 #				"$(basename "${file_one}")" \) -o \
 #			\( "$(basename "${file_two}" .gz)" != \
 #				"$(basename "${file_two}")" \) ]; then
-	elif [ "${file_one%.gz}" != "${file_one}" -o \
-			"${file_two%.gz}" != "${file_two}" ]; then
+	elif [ "${file_one%.gz}" != "${file_one}" ] || \
+			[ "${file_two%.gz}" != "${file_two}" ]; then
 		zdiff "${file_one}" "${file_two}"; return $?
 	fi
 #	if [ "$(basename "${file_one}" .lrz)" != \

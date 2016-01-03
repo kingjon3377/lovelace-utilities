@@ -10,6 +10,10 @@ mplayer_all_get_files() {
 	done
 }
 mplayer_all() {
+    # TODO: Make mplayer_all_get_files quote its output
+    # But whether the files are quoted or not, they have to be separated by the
+    # shell
+    # shellcheck disable=SC2046
 	mplayer $(mplayer_all_get_files "$@"|shuf)
 }
 

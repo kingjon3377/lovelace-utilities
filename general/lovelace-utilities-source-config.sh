@@ -13,17 +13,20 @@ lovelace_utilities_source_config() {
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
         export LOVELACE_OPEN=open
+        # shellcheck source=/dev/null
         . "${HOME}/Library/Application Support/lovelace-utilities/config"
         export LOVELACE_CONFIG_SOURCED=true
     elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
             [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
         export LOVELACE_OPEN=xdg-open
+        # shellcheck source=../../../.config/lovelace-utilities/config
         . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
         export LOVELACE_CONFIG_SOURCED=true
     else
         TEMP_XDG_CONFIG=$(lovelace_utilities_xdg_config)
         if [ -n "${TEMP_XDG_CONFIG}" ] && [ -f "${TEMP_XDG_CONFIG}/config" ]; then
             export LOVELACE_OPEN=xdg-open
+            # shellcheck source=/etc/xdg/lovelace-utilities/config
             . "${TEMP_XDG_CONFIG}/config"
             export LOVELACE_CONFIG_SOURCED=true
         else
@@ -35,17 +38,20 @@ lovelace_utilities_source_config_bash() {
     if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
             [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
         export LOVELACE_OPEN=xdg-open
+        # shellcheck source=/dev/null
         . "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
         export LOVELACE_CONFIG_SOURCED=true
     elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
             [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
             export LOVELACE_OPEN=xdg-open
+        # shellcheck source=../../../.config/lovelace-utilities/config-bash
         . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
         export LOVELACE_CONFIG_SOURCED=true
     else
         TEMP_XDG_CONFIG=$(lovelace_utilities_xdg_config)
         if [ -n "${TEMP_XDG_CONFIG}" ] && [ -f "${TEMP_XDG_CONFIG}/config-bash" ]; then
             export LOVELACE_OPEN=xdg-open
+            # shellcheck source=/etc/xdg/lovelace-utilities/config-bash
             . "${TEMP_XDG_CONFIG}/config-bash"
             export LOVELACE_CONFIG_SOURCED=true
         else

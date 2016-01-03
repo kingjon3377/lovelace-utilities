@@ -1,5 +1,6 @@
 #!/bin/bash
 # mycat requires bashisms, so we can't be portable-sh here.
+# shellcheck source=./mycat.sh
 source "${BASH_SOURCE[0]%/*}/mycat.sh"
 loadavg() {
 	mycat /proc/loadavg

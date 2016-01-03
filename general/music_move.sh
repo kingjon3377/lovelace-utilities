@@ -1,5 +1,6 @@
 #!/bin/bash
 # We use bashisms (string substitutions), so we also use the less portable but more reliable way of detecting our directory
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 move_if_exists() {
 	if [ -e "${1}" ]; then

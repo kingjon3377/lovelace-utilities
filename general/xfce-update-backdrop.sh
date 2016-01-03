@@ -2,6 +2,7 @@
 if pidof xfdesktop > /dev/null ; then
 	if [ -z "${DBUS_SESSION_BUS_ADDRESS}" ] ; then
         	newest_script="${HOME}/.dbus/session-bus/$(ls -rt "${HOME}/.dbus/session-bus/" | tail -1)"
+        # shellcheck source=/dev/null
 		. "${newest_script}"
         	export DBUS_SESSION_BUS_ADDRESS
 	fi

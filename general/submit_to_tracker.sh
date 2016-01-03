@@ -4,6 +4,7 @@
 # Unlike most scripts in this collection, we don't define reasonable defaults
 # for the configuration variables: the function project_name_to_id defaults to
 # an alias for true, and TRACKER_TOKEN defaults to invalidtoken
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 submit_to_tracker() {
     lovelace_utilities_source_config

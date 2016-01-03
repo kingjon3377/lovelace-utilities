@@ -1,5 +1,6 @@
 #!/bin/sh
 cm_called_path=$_
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 play_all_favorites() {
     lovelace_utilities_source_config
@@ -54,8 +55,13 @@ play_all_favorites() {
 			curr=$((curr + 1))
 		done
 	else
+        # File list is file-separated, and player command may include options
+        # TODO: Figure out some way to mitigate these
+        # shellcheck disable=SC2086
 		${PLAYER_COMMAND} ${file_list}
 	fi
+    # No need to return if the last command of a function fails
+    # shellcheck disable=SC2164
 	cd "${ORIG_PWD}"
 }
 

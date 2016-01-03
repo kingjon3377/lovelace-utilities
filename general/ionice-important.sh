@@ -1,6 +1,7 @@
 #!/bin/bash
 # We want to use a bashism, a shell array, below, so we use the nonportable but
 # more reliable way of detecting the script's directory
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 ionice_important() {
     lovelace_utilities_source_config_bash
@@ -13,6 +14,9 @@ ionice_important() {
                                 mate-power-manager mate-settings-daemon pekwm links mate-terminal
                                 gnome-pty-helper )
     fi
+    # ionice takes PIDs as separate arguments, and pidof produces a
+    # space-separated list, so they need to be separated by the shell.
+    # shellcheck disable=SC2046
 	sudo ionice -c 1 -p $(pidof "${IO_IMPORTANT_PROGRAMS[@]}")
 }
 if [ "${BASH_SOURCE}" = "$0" ]; then

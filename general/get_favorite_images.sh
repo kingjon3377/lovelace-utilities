@@ -1,22 +1,9 @@
 #!/bin/bash
 # The sourced file uses bashisms, and I think so do we here.
+# shellcheck source=./keep_image.sh
 . "${BASH_SOURCE[0]%/*}/keep_image.sh"
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
-# TODO: Should we source the config file unconditionally? If so, should we define SOURCE_DIRECTORY etc. globally?
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config-bash" ]; then
-        source "${HOME}/Library/Application Support/lovelace-utilities/config-bash"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash" ]; then
-        source "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config-bash"
-    else
-        SOURCE_DIRECTORY=${HOME}/media/photos
-        NEW_DIR=${HOME}/media/favorite_photos
-        RECORD=${NEW_DIR}/checked.txt
-        FAV_FILE=${NEW_DIR}/favorite_photos.txt
-    fi
-fi
 get_favorite_images() {
     lovelace_utilities_source_config
     if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then

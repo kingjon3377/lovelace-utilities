@@ -5,7 +5,7 @@ to_x264_each() {
 	filepath="${filename%/*}"
 	tempdir="$(mktemp -d)"
 	OLD_PWD="${PWD}"
-	cd "${tempdir}"
+	cd "${tempdir}" || return 1
 	case "${filename}" in
 	*[Aa][Vv][Ii].gz)
 		base="${filename%.gz}"
@@ -47,7 +47,7 @@ to_x264_each() {
 	{ cp "${filename}" .&&${decompress} "${pathless}" && \
 		ffmpeg -i "${pathless_base}" -vcodec libx264 -f mp4 -acodec libfaac "${final}" && \
 		echo "Press enter to test converted video ..." && \
-		read && \
+		read -r && \
 		play_possibly_remove.sh "${final}"; } || return $?
 	if [ -f "${final}" ]; then
 		{ z-if-possible.sh "${final}" && du -h "${filename}" "${final}"* "${pathless_base}" && \

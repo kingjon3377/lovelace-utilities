@@ -14,6 +14,8 @@ else
 	fi
 	export FORCE_USECOLORS="${FORCE_USECOLORS:-true}" 
 	DATE=$(date --rfc-3339=date)
+    # SYNC_FLAG is likely to be empty, and we don't want to pass "" to eix-sync!
+    # shellcheck disable=SC2086
 	eix-sync ${SYNC_FLAG:-} | tee -a "${TARGET_DIR}/${DATE}.$$" || exit 3
 #	eix-sync -w | tee -a "${TARGET_DIR}/${DATE}.$$" || exit 3 # emerge-webrsync
 #	eix-sync -W | tee -a "${TARGET_DIR}/${DATE}.$$" || exit 3 # emerge-delta-webrsync

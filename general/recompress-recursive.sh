@@ -1,5 +1,6 @@
 #!/bin/sh
 rr_called_path=$_
+# shellcheck source=./recompress.sh
 . "${rr_called_path%/*}/recompress.sh" || return 1
 recompress_recursive() {
 	# Usage: a filename or directory, followed by a list of extensions; if

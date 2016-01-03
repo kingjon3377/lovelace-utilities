@@ -1,19 +1,7 @@
 #!/bin/bash
 # We use bash arrays for Wordpress blogs, etc.
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
-if [ "${BASH_SOURCE}" = "$0" ];then
-    if [ -d "${HOME}/Library/Application Support/lovelace-utilities" ] && \
-            [ -f "${HOME}/Library/Application Support/lovelace-utilities/config" ]; then
-        OPEN=open
-        . "${HOME}/Library/Application Support/lovelace-utilities/config"
-    elif [ -n "${XDG_CONFIG_HOME:-${HOME}/.config}" ] && [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities" ] && \
-            [ -f "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config" ]; then
-        OPEN=xdg-open
-        . "${XDG_CONFIG_HOME:-${HOME}/.config}/lovelace-utilities/config"
-    else
-        WGET="wget --progress=dot"
-    fi
-fi
 backup_goodreads() {
     lovelace_utilities_source_config_bash
     if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
@@ -104,7 +92,7 @@ backup_tracker() {
 			jq --unbuffered '.' |
 			grep '"id"' | sed 's/^[   ]*"id": \([0-9]*\),$/\1/' | \
 			cat - "${PIVOTAL_PROJECTS:-${HOME}/tracker_projects_list}" | sort -u | \
-			tee "${tmpfile}" | while read project;do
+			tee "${tmpfile}" | while read -r project;do
 		${LOVELACE_OPEN} "https://www.pivotaltracker.com/projects/${project}/export"
 		sleep 1
 	done

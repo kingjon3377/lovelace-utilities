@@ -1,5 +1,6 @@
 #!/bin/sh
 cm_called_path=$_
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 update_and_push() {
     lovelace_utilities_source_config
@@ -16,13 +17,13 @@ update_and_push() {
 			cd "${arg}/.." || break
 			hg pull -u
 			grep -q "${UPSTREAM_USERNAME_STRING}" .hg/hgrc && hg push
-			cd "${OLD_PWD}" ;;
+			cd "${OLD_PWD}" || break ;;
 		*) if [ -d "${arg}/.hg" ] ; then
 				OLD_PWD="${PWD}"
 				cd "${arg}" || break
 				hg pull -u
 				grep -q UPSTREAM_USERNAME_STRINGkingjon .hg/hgrc && hg push
-				cd "${OLD_PWD}"
+				cd "${OLD_PWD}"|| break
 			else
 				echo "${arg} is not a Hg repo"
 			fi ;;

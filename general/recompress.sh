@@ -1,10 +1,13 @@
 #!/bin/sh
 rc_called_path=$_
 if [ -f "${rc_called_path%/*}/z-if-possible.sh"  ];then
+# shellcheck source=./z-if-possible.sh
     . "${rc_called_path%/*}/z-if-possible.sh"
 elif [ -f "${HOME}/bin/z-if-possible.sh" ];then
+# shellcheck source=./z-if-possible.sh
 	. "${HOME}/bin/z-if-possible.sh" || return 2
 elif [ -f /usr/local/bin/z-if-possible.sh ];then
+# shellcheck source=./z-if-possible.sh
 	. /usr/local/bin/z-if-possible.sh || return 2
 else
 	return 2

@@ -1,5 +1,6 @@
 #!/bin/sh
 cm_called_path=$_
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 to_kindle() {
     lovelace_utilities_source_config

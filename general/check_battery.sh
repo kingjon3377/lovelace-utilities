@@ -1,5 +1,6 @@
 #!/bin/sh
 cb_called_path=$_
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${cb_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 check_battery() {
     lovelace_utilities_source_config

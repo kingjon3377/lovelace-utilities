@@ -5,6 +5,8 @@ svnsf() {
 	mkdir "${1}" && \
 	cd "${1}" && \
 	svn co "http://${1}.svn.sf.net/svnroot/${1}"
+    # No point in returning if last command in function fails
+    # shellcheck disable=SC2164
 	cd "${OLD_PWD}"
 }
 

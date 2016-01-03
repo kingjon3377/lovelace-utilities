@@ -1,6 +1,7 @@
 #!/bin/bash
 # We use bashisms, namely bash arrays, so we use the more reliable but
 # nonportable method of detecting this script's directory
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 # TODO: Make a way to handle multiple 'favorites' directories (e.g. favorites, easter, xmas) at once
 create_new_favorites() {

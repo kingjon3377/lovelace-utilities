@@ -1,6 +1,7 @@
 #!/bin/bash
 # Shell arrays are a bashism, so we use the nonportable but more reliable way
 # of detecting the script's location
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 synchronize() {
     lovelace_utilities_source_config_bash

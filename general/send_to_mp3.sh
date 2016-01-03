@@ -1,5 +1,6 @@
 #!/bin/sh
 stm_called_path=$_
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${stm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 send_to_mp3() {
     lovelace_utilities_source_config

@@ -4,6 +4,7 @@ if [ "${BASH_SOURCE}" = "$0" ]; then
         echo "Source this file, don\'t execute it."
 	exit 1
 fi
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 lovelace_utilities_source_config_bash
 if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then

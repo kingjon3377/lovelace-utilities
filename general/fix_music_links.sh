@@ -1,6 +1,7 @@
 #!/bin/bash
 # called_path=$_
 # We use arrays for MUSIC_ROOT_DIRS and MUSIC_FAVORITES_DIRS, so bash-only
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 fml_link() {
 	if [ -n "${VERBOSE}" ];then

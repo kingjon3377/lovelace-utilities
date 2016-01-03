@@ -14,6 +14,8 @@ continue_firefox() {
 	CONT_PROGS=( "${OLDCONTPROGS[@]}" firefox firefox-bin thunderbird thunderbird-bin)
 	while pidof "${CONT_PROGS[@]}" >/dev/null
 	do
+        # pidof produces a space-separated list, each of which needs to be taken separately by kill
+        # shellcheck disable=SC2046
 		kill -CONT $(pidof "${CONT_PROGS[@]}")
 		sync
 		sleep 2

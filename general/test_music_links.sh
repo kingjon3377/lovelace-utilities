@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 test_music_links() {
     lovelace_utilities_source_config_bash
@@ -16,6 +17,8 @@ test_music_links() {
                 sed -e "${regex}"
         done
     done
+    # No point in returning if last command in function fails
+    # shellcheck disable=SC2164
 	cd "${OLD_PWD}"
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
