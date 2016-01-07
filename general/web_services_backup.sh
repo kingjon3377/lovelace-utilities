@@ -36,7 +36,9 @@ backup_librarything() {
         LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
     fi
 	#cookie=$(mktemp)
-	# Cookies generated using LibraryThing.sh, in third_party, with the cleanup line at the end commented out.
+    # Cookies generated using
+    # [LibraryThing.sh](https://github.com/l0b0/export/blob/master/LibraryThing.sh),
+    # with the cleanup line at the end commented out.
 	LT_CKSUM=${LT_CKSUM:-invalid}
 	LT_UNUM=${LT_UNUM:-invalid}
 	LT_UID=${LT_UID:-invalid}
