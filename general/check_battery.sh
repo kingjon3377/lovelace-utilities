@@ -24,5 +24,5 @@ check_battery() {
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-[ "${cb_called_path}" = "$0" ] && check_mp3 "$@"
-#[ "${BASH_SOURCE}" = "$0" ] && check_mp3 "$@"
+[ "${cb_called_path}" = "$0" ] && check_battery "$@"
+#[ "${BASH_SOURCE}" = "$0" ] && check_battery "$@"
