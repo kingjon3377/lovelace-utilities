@@ -139,8 +139,8 @@ sub putintodevice {
         my($basename) = <F> or die "$0: setting basename variable\n";
 	chomp($basename);
 	close(F);
-	    #system("gst-launch-0.10 filesrc location=$f ! oggdemux !  vorbisdec ! audioconvert ! ffenc_mp2 bitrate=$my_kbitrate ! xingmux !  id3v2mux ! filesink location=$mountpoint/$basename.mp3");
-	    system("gst-launch-0.10 -q filesrc location=$f ! oggdemux !  vorbisdec ! audioconvert ! ffenc_mp2 bitrate=$my_kbitrate ! id3v2mux ! filesink location=$mountpoint/$basename.mp3");
+	    #system("gst-launch-1.0 filesrc location=$f ! oggdemux !  vorbisdec ! audioconvert ! avenc_mp2 bitrate=$my_kbitrate ! xingmux !  id3v2mux ! filesink location=$mountpoint/$basename.mp3");
+	    system("gst-launch-1.0 -q filesrc location=$f ! oggdemux !  vorbisdec ! audioconvert ! avenc_mp2 bitrate=$my_kbitrate ! id3v2mux ! filesink location=$mountpoint/$basename.mp3");
             #system("ogg123 -q --device=wav $f -f -| toolame -b $my_kbitrate - $mountpoint/$basename.mp3 2> /dev/null") == 0 
                 #or die "$0: Making MP3 out of $f and writing onto $mountpoint/$basename.mp3 failed: $!\n";
         }
