@@ -1,7 +1,8 @@
 #!/bin/sh
 cm_called_path=$_
+lib_path="${lib_path:-${cm_called_path:-${HOME}/bin/discarded}}"
 # shellcheck source=./lovelace-utilities-source-config.sh
-. "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
+. "${lib_path%/*}/lovelace-utilities-source-config.sh" || return 1
 play_possibly_remove() {
     lovelace_utilities_source_config
     local PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer -novideo}

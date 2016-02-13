@@ -1,6 +1,7 @@
 #!/bin/sh
 cv_called_path=$_
 # shellcheck source=./play_possibly_remove.sh
+. "${cv_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 . "${cv_called_path%/*}/play_possibly_remove.sh"
 convert_video() {
 	if [ $# -gt 1 ]; then
