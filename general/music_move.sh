@@ -25,7 +25,7 @@ music_move() {
     BASE=$(realpath --relative-to="${HOME}" "${MUSIC_COLLECTION}")
     SRC="${1##${BASE}}"
     SRC="${SRC##/}"
-    DEST="${1##${BASE}}"
+    DEST="${2##${BASE}}"
     DEST="${DEST##/}"
     for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
         SRC="${SRC##${dir}}"
