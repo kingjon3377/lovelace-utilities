@@ -27,6 +27,7 @@ z_recursive() {
 				return 2
 			fi
 		done
+		echo "Done in $1 ..."
 	fi
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
