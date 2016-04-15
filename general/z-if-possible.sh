@@ -7,6 +7,10 @@ z_if_possible() {
 		SKIP_RZIP=${SKIP_RZIP:-false}
 	fi
 	filename="$1"
+	if ! [ -f "${filename}" ]; then
+		echo "${filename} not present. Skipping ..." 1>&2
+		return 0
+	fi
 	if [ -e "${filename}".gz ] || [ -e "${filename}".bz2 ] || \
 			[ -e "${filename}".xz ] || [ -e "${filename}".rz ] \
 			|| [ -e "${filename}".lrz ]; then
