@@ -14,11 +14,6 @@ play_five_favorites() {
     fi
 	ORIG_PWD="${PWD}"
 	cd "${MUSIC_COLLECTION_BASE}" || return
-	local DATE
-	local XMAS
-	local FAVORITES
-	local PLAYER_COMMAND
-	local REPS
 	usage() {
 		echo 'Usage: play_five_favorites [[--][no[-]]remove] [[--][no]xmas] [[--][no[-]]video] [COUNT]' 
 		echo '  Select five music files at random and play them.'

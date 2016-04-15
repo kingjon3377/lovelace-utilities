@@ -14,10 +14,6 @@ play_all_favorites() {
     fi
 	ORIG_PWD="${PWD}"
 	cd "${MUSIC_COLLECTION_BASE}" || return
-	local DATE
-	local XMAS
-	local PLAYER_COMMAND
-	local FAVORITES
 	while [ $# -gt 0 ];do
 		case "${1}" in
 			noremove | --noremove | no-remove | --no-remove) REMOVE=false ;;

@@ -9,7 +9,7 @@ speex_concat() {
 		echo "Beware: don't call speex_concat again in this shell until"
 		echo "this run finishes, or temporary files might get clobbered"
 	fi
-	local SPC_IONICE_CMD
+	SPC_IONICE_CMD=${SPC_NO_IONICE:-}
 	if [ -z "${SPC_NO_IONICE}" ]; then
 		SPC_IONICE_CMD="${SPC_IONICE_CMD:-ionice -c 3}"
 	else
