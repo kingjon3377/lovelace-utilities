@@ -27,59 +27,26 @@ recompress() {
 		return 0
 	else
 		case "${filename}" in
-		*.gz)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .gz)"
-			base="${filename%.gz}"
+		*.[gG][Zz])
+			base="${filename%.[gG][zZ]}"
 			decompress=gunzip ;;
-		*.GZ)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .GZ)"
-			base="${filename%.GZ}"
-			decompress=gunzip ;;
-		*.bz2)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .bz2)"
-			base="${filename%.bz2}"
+		*.[bB][zZ]2)
+			base="${filename%.[bB][zZ]2}"
 			decompress=bunzip2 ;;
-		*.BZ2)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .BZ2)"
-			base="${filename%.BZ2}"
-			decompress=bunzip2 ;;
-		*.rz)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .rz)"
-			base="${filename%.rz}"
+		*.[rR][zZ])
+			base="${filename%.[rR][zZ]}"
 			decompress=runzip ;;
-		*.RZ)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .RZ)"
-			base="${filename%.RZ}"
-			decompress=runzip ;;
-		*.lrz)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .lrz)"
-			base="${filename%.lrz}"
+		*.[lL][rR][zZ])
+			base="${filename%.[lL][rR][zZ]}"
 			decompress="lrunzip -D" ;;
-		*.LRZ)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .LRZ)"
-			base="${filename%.LRZ}"
-			decompress="lrunzip -D" ;;
-		*.xz)
-			base="${filename%.xz}"
+		*.[xX][zZ])
+			base="${filename%.[xX][zZ]}"
 			decompress=unxz ;;
-		*.XZ)
-			base="${filename%.XZ}"
-			decompress=unxz ;;
-		*.tgz)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .tgz).tar"
-			base="${filename%.tgz}.tar"
+		*.[tT][Gg][Zz])
+			base="${filename%.[Tt][Gg][Zz]}.tar"
 			decompress=gunzip ;;
-		*.TGZ)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .TGZ).tar"
-			base="${filename%.TGZ}.tar"
-			decompress=gunzip ;;
-		*.tbz2)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .tbz2).tar"
-			base="${filename%.tbz2}.tar"
-			decompress=bunzip2 ;;
-		*.TBZ2)
-#			base="$(dirname "${filename}")/$(basename "${filename}" .TBZ2).tar"
-			base="${filename%.TBZ2}.tar"
+		*.[Tt][Bb][Zz]2)
+			base="${filename%.[Tt][Bb][Zz]2}.tar"
 			decompress=bunzip2 ;;
 		*)
 			echo "${0}: I don't know how to handle ${filename}" 
