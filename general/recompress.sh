@@ -42,6 +42,9 @@ recompress() {
 		*.[xX][zZ])
 			base="${filename%.[xX][zZ]}"
 			decompress=unxz ;;
+		*.[Ll][Zz][Mm][Aa])
+			base="${filename%.[Ll][Zz][Mm][Aa]}"
+			decompress=unxz ;;
 		*.[tT][Gg][Zz])
 			base="${filename%.[Tt][Gg][Zz]}.tar"
 			decompress=gunzip ;;
