@@ -43,7 +43,7 @@ z_if_possible() {
 		rzip_size="$(stat -c "%s" "${filename}".rz)"
 		rm "${filename}".rz
 	fi
-	lrzip -q -N 0 "${filename}"
+	lrzip -z -q -N 0 "${filename}"
 	lrzip_size="$(stat -c "%s" "${filename}".lrz)"
 	rm "${filename}".lrz
 	if [ "$raw_size" -le "$gzip_size" ] && [ "$raw_size" -le "$bzip_size" ] && \
@@ -75,7 +75,7 @@ z_if_possible() {
 			[ "$lrzip_size" -le "$bzip_size" ] && [ "$lrzip_size" -le "$xz_size" ] && \
 			[ "$lrzip_size" -le "$rzip_size" ]; then
 		echo "lrzipping ${filename} ..."
-		lrzip -q -D -N 0 "${filename}"
+		lrzip -z -q -D -N 0 "${filename}"
 	else
 		echo "z_if_possible: Shouldn't get here\!"
 		beep
