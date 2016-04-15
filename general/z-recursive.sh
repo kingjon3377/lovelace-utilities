@@ -1,8 +1,8 @@
 #!/bin/sh
 called_path=$_
-if [ -f ${called_path%/*}/z-if-possible.sh  ];then
+if [ -f "${called_path%/*}"/z-if-possible.sh  ];then
     # shellcheck source=./z-if-possible.sh
-    . ${called_path%/*}/z-if-possible.sh
+    . "${called_path%/*}"/z-if-possible.sh
 elif [ -f ~/bin/z-if-possible.sh ];then
     # shellcheck source=./z-if-possible.sh
 	. ~/bin/z-if-possible.sh || return 2
