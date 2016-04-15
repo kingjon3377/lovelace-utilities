@@ -1,6 +1,6 @@
 #!/bin/bash
 # This is a bash, rather than a portable-sh, script because it relies on the "export -f" bashism
-if [ "${0}" = "${BASH_SOURCE}" ]; then
+if [ "${0}" = "${BASH_SOURCE[0]}" ]; then
 	echo "Executing this is useless; source it instead."
 	exit 1
 fi

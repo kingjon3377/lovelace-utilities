@@ -59,6 +59,6 @@ music_move() {
         fi
     done
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	music_move "$@"
 fi

@@ -64,6 +64,6 @@ chroot_wrapper() {
 	umount "$CHROOT_DIR/dev"
 	umount "$CHROOT_DIR/proc"
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         chroot_wrapper "$@"
 fi

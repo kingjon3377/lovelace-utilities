@@ -34,6 +34,6 @@ create_new_favorites() {
 	done
 	rm "${PIPE}"
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         create_new_favorites "$@"
 fi

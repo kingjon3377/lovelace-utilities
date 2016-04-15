@@ -42,4 +42,4 @@ convert_video() {
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
 [ "${cv_called_path}" = "$0" ] && convert_video "$@"
-# [ "${BASH_SOURCE}" = "$0" ] && convert_video "$@"
+# [ "${BASH_SOURCE[0]}" = "$0" ] && convert_video "$@"

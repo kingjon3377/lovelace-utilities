@@ -19,6 +19,6 @@ ionice_important() {
     # shellcheck disable=SC2046
 	sudo ionice -c 1 -p $(pidof "${IO_IMPORTANT_PROGRAMS[@]}")
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         ionice_important "$@"
 fi

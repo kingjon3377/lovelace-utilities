@@ -65,6 +65,6 @@ get_favorite_images() {
 	rm "${PIPE}"
 	popd > /dev/null
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         get_favorite_images "$@"
 fi

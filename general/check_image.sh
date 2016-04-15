@@ -22,4 +22,4 @@ check_image() {
 		grep -q "${1}" "${FAVORITES_FILE}" || echo "${1}" >> "${ALL_FILE}"
 	fi
 }
-[ "${BASH_SOURCE}" = "$0" ] && check_image "$@"
+[ "${BASH_SOURCE[0]}" = "$0" ] && check_image "$@"

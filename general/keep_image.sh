@@ -33,6 +33,6 @@ keep_image() {
 		fi
 	done
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         keep_image "$@"
 fi

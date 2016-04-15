@@ -115,6 +115,6 @@ backup_web_services() {
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	backup_web_services "$@"
 fi

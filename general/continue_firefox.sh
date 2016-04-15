@@ -21,6 +21,6 @@ continue_firefox() {
 		sleep 2
 	done
 }
-if [ "${BASH_SOURCE}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         continue_firefox "$@" &
 fi

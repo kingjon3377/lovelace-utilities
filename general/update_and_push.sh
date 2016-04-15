@@ -33,4 +33,4 @@ update_and_push() {
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
 [ "${cm_called_path}" = "$0" ] && update_and_push "$@"
-#[ "${BASH_SOURCE}" = "$0" ] && update_and_push "$@"
+#[ "${BASH_SOURCE[0]}" = "$0" ] && update_and_push "$@"

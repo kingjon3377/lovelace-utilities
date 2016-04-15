@@ -27,4 +27,4 @@ send_to_mp3() {
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
 [ "${stm_called_path}" = "$0" ] && send_to_mp3 "$@"
-#[ "${BASH_SOURCE}" = "$0" ] && send_to_mp3 "$@"
+#[ "${BASH_SOURCE[0]}" = "$0" ] && send_to_mp3 "$@"
