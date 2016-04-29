@@ -14,8 +14,8 @@ else
 fi
 recompress() {
 	filename="${1}"
-	size="$(stat -c "%s"l "${filename}")"
-	free_space=$(df -P -B 1 "${filename}" | awk 'NR=2 { print $4 }')
+	size="$(stat -c "%s" "${filename}")"
+	free_space=$(df -P -B 1 "${filename}" | tail -n 1 | awk 'NR=2 { print $4 }')
 	doubled=$((size * 3))
 	if [ "${doubled}" -gt "${free_space}" ]; then
 		echo "${0}: ${filename} looks too big to decompress here ..."
@@ -65,7 +65,7 @@ recompress() {
 			return 1
 		fi
 	fi
-	z-if-possible "${base}"
+	z_if_possible "${base}"
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
