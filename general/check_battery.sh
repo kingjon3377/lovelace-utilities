@@ -16,7 +16,7 @@ check_battery() {
     en_full=$(cat "${BATT_EN_FULL_FILE}")
     percentage=$(echo "${en_now}" / "${en_full}" '*' 100 | bc -l | sed 's/\..*//')
     echo "${bat_status}: ${en_now} / ${en_full} (${percentage}%)"
-    if test -x /usr/bin/upower; then
+    if test -x /usr/bin/upower && pidof upowerd > /dev/null; then
         upower -i "/org/freedesktop/UPower/devices/battery_${BATT_NUM}" | grep -E 'state|time\ to|percentage'
     fi
     #echo "$(cat ${SYS_DIR}/status): $(cat ${SYS_DIR}/energy_now) / $(cat ${SYS_DIR}/energy_full)"
