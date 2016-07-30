@@ -17,7 +17,7 @@ create_new_favorites() {
 	mkdir -p "${MUSIC_FAVORITES_DIR}"
 	PIPE=$(mktemp -u)
 	mkfifo -m600 "${PIPE}"
-	find "${MUSIC_ROOT_DIRS[@]}" -type f >"${PIPE}" &
+	find "${MUSIC_ROOT_DIRS[@]}" -type f | sort >"${PIPE}" &
 	exec 3<"${PIPE}"
 	while read -r -u 3 file; do
 		grep -q -x -F "${MUSIC_COLLECTION}/${file}" "${MUSIC_COLLECTION_RECORD}" && continue
