@@ -52,9 +52,7 @@ backup_delicious() {
         LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
     fi
 #	xdg-open 'http://export.delicious.com/settings/bookmarks/export'
-	${LOVELACE_OPEN} 'https://delicious.com/settings/manage'
-	# If that doesn't work, use <https://delicious.com/settings/manage>
-	# instead, since it seems to require that as a referrer.
+	${LOVELACE_OPEN} 'https://del.icio.us/export'
 }
 backup_diigo() {
     lovelace_utilities_source_config_bash
