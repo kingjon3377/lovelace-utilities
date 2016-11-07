@@ -1,9 +1,11 @@
 #!/bin/bash
 # We want to use a bashism, a shell array, below, so we use the nonportable but
 # more reliable way of detecting sourceing.
+# shellcheck source=./lovelace-utilities-source-config.sh
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 continue_firefox() {
     lovelace_utilities_source_config_bash
-    if [ "${LIVELACE_CONFIG_SOURCED:-false}" = false ]; then
+    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
         CONT_PROGS=( nonexistentprogram )
     fi
 	if declare -p CONT_PROGS > /dev/null 2>&1; then
