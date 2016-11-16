@@ -35,20 +35,18 @@ submit_to_tracker() {
             done ;;
     esac
 	local TAGS="${TAGS:-${4}}"
-	local STORY_NAME="${STORY_NAME:-${5}}"
+	local STORY_NAME="$(echo "${STORY_NAME:-${5}}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"
 	local STATE="${STATE:-${6}}"
 	local DESC="${DESC:-${7}}"
-	STORY_TYPE="<story_type>${STORY_TYPE}</story_type>"
-	STORY_NAME="<name>${STORY_NAME}</name>"
-	test -n "${TAGS}" && TAGS="<labels>${TAGS}</labels>"
-	test -n "${POINTS}" -a "${POINTS}" != "0" && POINTS="<estimate>${POINTS}</estimate>"
-	test -n "${STATE}" && STATE="<current_state>${STATE}</current_state>"
-	test -n "${DESC}" && DESC="<description>${DESC}</description>"
-	curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" \
-		-H "Content-type: application/xml" \
-		-X POST \
-		-d "<story>${STORY_TYPE}${STORY_NAME}${POINTS}${TAGS}${STATE}${DESC}</story>" \
-			"https://www.pivotaltracker.com/services/v3/projects/${PROJECT}/stories" || return 4
+	test -n "${TAGS}" && TAGS='"labels":['"$(echo "${TAGS}" | sed -e 's@^@"@' -e 's@$@"@' -e 's@,@","@g')"'], '
+	test -n "${POINTS}" -a "${POINTS}" != "0" && POINTS='"estimate": '"${POINTS}, "
+	test -n "${STATE}" && STATE='"current_state":"'"${STATE}"'", '
+	test -n "${DESC}" && DESC='"description":"'"$(echo "${DESC}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"'", '
+	json="{ ${TAGS}${POINTS}${STATE}${DESC} \"name\":\"${STORY_NAME}\", \"story_type\":\"${STORY_TYPE}\"}"
+#	echo "${json}" | jq '.'
+	curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
+		-X POST -d "${json}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories" \
+			|| return 4
 }
 submit_tracker_release() {
 	if test $# -lt 4; then
