@@ -18,7 +18,7 @@ check_image() {
 	elif grep -q "${1}" "${ALL_FILE}"; then
 		return
 	else
-		fbi -a "${1}" >> "${FAVORITES_FILE}" 2> >(fbi_filter)
+		"${VIEWER}" -a "${1}" >> "${FAVORITES_FILE}" 2> >(fbi_filter)
 		grep -q "${1}" "${FAVORITES_FILE}" || echo "${1}" >> "${ALL_FILE}"
 	fi
 }
