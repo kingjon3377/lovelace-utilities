@@ -23,7 +23,7 @@ submit_to_tracker() {
 	if test ${proj_ret} -ne 0; then return ${proj_ret};fi
 	local STORY_TYPE=${STORY_TYPE:-${2}}
 	local POINTS=${POINTS:-${3}}
-	if test -v PROJECTS_WITHOUT_CHORE_PTS[@]; then
+    if [[ "$(declare -p PROJECTS_WITHOUT_CHORE_PTS 2>/dev/null)" =~ "declare -a" ]]; then
 		for proj in "${PROJECTS_WITHOUT_CHORE_PTS[@]}";do
 			if test "${PROJECT}" = "${proj}" -a \
 					"${STORY_TYPE}" = "chore" -a \
