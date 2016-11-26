@@ -34,7 +34,8 @@ submit_to_tracker() {
 		done
 	fi
 	local TAGS="${TAGS:-${4}}"
-	local STORY_NAME="$(echo "${STORY_NAME:-${5}}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"
+	local STORY_NAME="${STORY_NAME:-${5}}"
+	STORY_NAME="$(echo "${STORY_NAME}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"
 	local STATE="${STATE:-${6}}"
 	local DESC="${DESC:-${7}}"
 	test -n "${TAGS}" && TAGS='"labels":['"$(echo "${TAGS}" | sed -e 's@^@"@' -e 's@$@"@' -e 's@,@","@g')"'], '
