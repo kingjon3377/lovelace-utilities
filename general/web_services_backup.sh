@@ -78,7 +78,7 @@ backup_gmail() {
         WGET="${WGET:-wget --progress=dot}"
         LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
     fi
-	offlineimap
+	mbsync -V gmail
 }
 backup_tracker() {
     lovelace_utilities_source_config_bash
