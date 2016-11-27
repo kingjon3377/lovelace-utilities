@@ -70,7 +70,6 @@ backup_facebook() {
 	fi
 	FB_DYI_KEY=${FB_DYI_KEY:-invalid}
 	${LOVELACE_OPEN} "https://www.facebook.com/dyi?x=${FB_DYI_KEY}"
-	${LOVELACE_OPEN} 'https://apps.facebook.com/give_me_my_data/'
 }
 backup_gmail() {
 	lovelace_utilities_source_config_bash
