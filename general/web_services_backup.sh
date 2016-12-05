@@ -77,7 +77,11 @@ backup_gmail() {
 		WGET="${WGET:-wget --progress=dot}"
 		LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
 	fi
-	mbsync -V gmail
+	if test -x /usr/bin/trickle; then
+		trickle -s -d 150 -u 150 mbsync -V gmail
+	else
+		mbsync -V gmail
+	fi
 }
 backup_tracker() {
 	lovelace_utilities_source_config_bash
