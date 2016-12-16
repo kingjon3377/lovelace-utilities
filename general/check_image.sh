@@ -7,10 +7,10 @@
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 check_image() {
-    lovelace_utilities_source_config
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        VIEWER=${VIEWER:-fbi}
-    fi
+	lovelace_utilities_source_config
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		VIEWER=${VIEWER:-fbi}
+	fi
 	FAVORITES_FILE=${2:-favorites.txt}
 	ALL_FILE=${3:-all_images.txt}
 	if grep -q "${1}" "${FAVORITES_FILE}"; then

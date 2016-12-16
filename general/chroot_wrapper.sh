@@ -65,5 +65,5 @@ chroot_wrapper() {
 	umount "$CHROOT_DIR/proc"
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        chroot_wrapper "$@"
+	chroot_wrapper "$@"
 fi

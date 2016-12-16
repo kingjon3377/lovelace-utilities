@@ -11,28 +11,28 @@ move_if_exists() {
 #		echo "Would move \"${1}\" to \"${2}\""
 }
 music_move() {
-    lovelace_utilities_source_config_bash
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        MUSIC_COLLECTION=${MUSIC_COLLECTION:-${HOME}/music}
-        MUSIC_ROOT_DIRS=${MUSIC_ROOT_DIRS:-( choirs itunes sorted )}
-        MUSIC_FAVORITES_DIRS=${MUSIC_FAVORITES_DIRS:-( favorites xmas easter )}
-    fi
+	lovelace_utilities_source_config_bash
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		MUSIC_COLLECTION=${MUSIC_COLLECTION:-${HOME}/music}
+		MUSIC_ROOT_DIRS=${MUSIC_ROOT_DIRS:-( choirs itunes sorted )}
+		MUSIC_FAVORITES_DIRS=${MUSIC_FAVORITES_DIRS:-( favorites xmas easter )}
+	fi
 	if [ $# -ne 2 ]; then
 		echo "Usage: music_move SRC DEST"
 		echo "SRC and DEST both relative to music/ and the various collection-dirs."
 		return 1
 	fi
-    BASE=$(realpath --relative-to="${HOME}" "${MUSIC_COLLECTION}")
-    SRC="${1##${BASE}}"
-    SRC="${SRC##/}"
-    DEST="${2##${BASE}}"
-    DEST="${DEST##/}"
-    for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
-        SRC="${SRC##${dir}}"
-        SRC="${SRC##/}"
-        DEST="${DEST##${dir}}"
-        DEST="${DEST##/}"
-    done
+	BASE=$(realpath --relative-to="${HOME}" "${MUSIC_COLLECTION}")
+	SRC="${1##${BASE}}"
+	SRC="${SRC##/}"
+	DEST="${2##${BASE}}"
+	DEST="${DEST##/}"
+	for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
+		SRC="${SRC##${dir}}"
+		SRC="${SRC##/}"
+		DEST="${DEST##${dir}}"
+		DEST="${DEST##/}"
+	done
 	if [ ! -e "${MUSIC_COLLECTION}/${SRC}" ]; then
 		echo "Error: File ${SRC} doesn't exist in the main collection, ${MUSIC_COLLECTION}."
 		return 2
@@ -51,13 +51,13 @@ music_move() {
 	fi
 	mv -i "${MUSIC_COLLECTION}/${SRC}" "${MUSIC_COLLECTION}/${DEST}" || \
 		return $?
-    for dir in "${MUSIC_FAVORITES_DIRS[@]}"; do
-        if test -e "${MUSIC_COLLECTION}/${dir}/${SRC}"; then
-            move_if_exists "${MUSIC_COLLECTION}/${dir}/${SRC}" \
-                    "${MUSIC_COLLECTION}/${dir}/${DEST}" || \
-                return $?
-        fi
-    done
+	for dir in "${MUSIC_FAVORITES_DIRS[@]}"; do
+		if test -e "${MUSIC_COLLECTION}/${dir}/${SRC}"; then
+			move_if_exists "${MUSIC_COLLECTION}/${dir}/${SRC}" \
+					"${MUSIC_COLLECTION}/${dir}/${DEST}" || \
+				return $?
+		fi
+	done
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	music_move "$@"

@@ -11,8 +11,8 @@ sudo_function() {
 		echo "Usage: sudo_function user funcname [args]"
 		return 1
 	fi
-    # Exporting the expansion is the point
-    # shellcheck disable=SC2163
+	# Exporting the expansion is the point
+	# shellcheck disable=SC2163
 	export -f "${2}"
 	username="${1}"
 	shift

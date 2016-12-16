@@ -5,14 +5,14 @@
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 # TODO: Make a way to handle multiple 'favorites' directories (e.g. favorites, easter, xmas) at once
 create_new_favorites() {
-    lovelace_utilities_source_config_bash
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
-        MUSIC_ROOT_DIRS=( choirs itunes sorted )
-        MUSIC_FAVORITES_DIR=${MUSIC_FAVORITES_DIR:-${MUSIC_COLLECTION}/favorites}
-        MUSIC_COLLECTION_RECORD=${MUSIC_COLLECTION_RECORD:-${MUSIC_COLLECTION}/checked.txt}
-        PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
-    fi
+	lovelace_utilities_source_config_bash
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
+		MUSIC_ROOT_DIRS=( choirs itunes sorted )
+		MUSIC_FAVORITES_DIR=${MUSIC_FAVORITES_DIR:-${MUSIC_COLLECTION}/favorites}
+		MUSIC_COLLECTION_RECORD=${MUSIC_COLLECTION_RECORD:-${MUSIC_COLLECTION}/checked.txt}
+		PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
+	fi
 	pushd "${MUSIC_COLLECTION}" > /dev/null
 	mkdir -p "${MUSIC_FAVORITES_DIR}"
 	PIPE=$(mktemp -u)
@@ -35,5 +35,5 @@ create_new_favorites() {
 	rm "${PIPE}"
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        create_new_favorites "$@"
+	create_new_favorites "$@"
 fi

@@ -1,15 +1,15 @@
 #!/bin/bash
 # This is designed to be sourced in bash.
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        echo "Source this file, don\'t execute it."
+	echo "Source this file, don\'t execute it."
 	exit 1
 fi
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 lovelace_utilities_source_config_bash
 if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-    MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
-    MUSIC_ROOT_DIRS=( choirs itunes sorted )
+	MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
+	MUSIC_ROOT_DIRS=( choirs itunes sorted )
 fi
 setup() {
 	find "${MUSIC_ROOT_DIRS[@]/#/${MUSIC_COLLECTION}/}" -type d | while read -r a; do

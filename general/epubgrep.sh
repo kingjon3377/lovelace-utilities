@@ -13,5 +13,5 @@ epubgrep() {
 # $BASH_SOURCE, but is portable to other sh implementations
 if [ "${called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        epubgrep "$@"
+	epubgrep "$@"
 fi

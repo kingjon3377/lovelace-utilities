@@ -9,5 +9,5 @@ count_files() {
 # $BASH_SOURCE, but is portable to other sh implementations
 #if [ "${called_path}" = "$0" ]; then
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        count_files "$@"
+	count_files "$@"
 fi

@@ -3,10 +3,10 @@ cm_called_path=$_
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 to_kindle() {
-    lovelace_utilities_source_config
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        EBOOK_INTERIM_STORAGE=${EBOOK_INTERIM_STORAGE:-${HOME}/ff-epub}
-    fi
+	lovelace_utilities_source_config
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		EBOOK_INTERIM_STORAGE=${EBOOK_INTERIM_STORAGE:-${HOME}/ff-epub}
+	fi
 	dir=$(mktemp -d)
 	mtpfs "${dir}" || return 1
 	if test -d "${dir}/Books"; then

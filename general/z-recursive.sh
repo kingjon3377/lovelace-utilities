@@ -1,10 +1,10 @@
 #!/bin/sh
 called_path=$_
 if [ -f "${called_path%/*}"/z-if-possible.sh  ];then
-    # shellcheck source=./z-if-possible.sh
-    . "${called_path%/*}"/z-if-possible.sh
+	# shellcheck source=./z-if-possible.sh
+	. "${called_path%/*}"/z-if-possible.sh
 elif [ -f ~/bin/z-if-possible.sh ];then
-    # shellcheck source=./z-if-possible.sh
+	# shellcheck source=./z-if-possible.sh
 	. ~/bin/z-if-possible.sh || return 2
 elif [ -f /usr/local/bin/z-if-possible.sh ];then
 	. /usr/local/bin/z-if-possible.sh || return 2
@@ -34,5 +34,5 @@ z_recursive() {
 # $BASH_SOURCE, but is portable to other sh implementations
 if [ "${called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        z_recursive "$@"
+	z_recursive "$@"
 fi

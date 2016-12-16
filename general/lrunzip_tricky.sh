@@ -15,5 +15,5 @@ lrunzip_tricky() {
 # $BASH_SOURCE, but is portable to other sh implementations
 if [ "${called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        lrunzip_tricky "$@"
+	lrunzip_tricky "$@"
 fi

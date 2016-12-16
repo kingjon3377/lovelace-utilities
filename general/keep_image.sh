@@ -34,5 +34,5 @@ keep_image() {
 	done
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        keep_image "$@"
+	keep_image "$@"
 fi

@@ -14,22 +14,22 @@ suspend_if_not_too_late() {
 	fi
 }
 suspend_after_emerge() {
-    case $# in
-        0)
-            # We want each PID to be checked individually
-            # shellcheck disable=SC2046
-            suspend_after_emerge $(pidof -x emerge) ;;
-    1) while test -d "/proc/${1}";do
-        sleep 720
-    done && suspend_if_not_too_late ;;
-    *) firstpid=${1};shift
-        # We want this to be "double split" so the -o becomes a separate argument
-	# TODO: If we require bash, generate and use an array here instead.
-        # shellcheck disable=SC2068
-        while test -d "/proc/${firstpid}" ${@/#/-o /proc/};do
-            sleep 720
-        done && suspend_if_not_too_late ;;
-    esac
+	case $# in
+		0)
+			# We want each PID to be checked individually
+			# shellcheck disable=SC2046
+			suspend_after_emerge $(pidof -x emerge) ;;
+		1) while test -d "/proc/${1}";do
+				sleep 720
+			done && suspend_if_not_too_late ;;
+		*) firstpid=${1};shift
+			# We want this to be "double split" so the -o becomes a separate argument
+			# TODO: If we require bash, generate and use an array here instead.
+			# shellcheck disable=SC2068
+			while test -d "/proc/${firstpid}" ${@/#/-o /proc/};do
+				sleep 720
+			done && suspend_if_not_too_late ;;
+	esac
 }
 # Takes the wake time (as if produced by $(date +%s)) and any number of PIDs.
 suspend_but_wake() {

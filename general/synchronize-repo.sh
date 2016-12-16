@@ -18,7 +18,7 @@ synchronize_repo() {
 	case "${VCSCMD}" in
 	hg) hg pull -u "ssh://${2}/${1}" && hg push "ssh://${2}/${1}" ;;
 	esac
-    # No point in returning if last command in function fails
-    # shellcheck disable=SC2164
+	# No point in returning if last command in function fails
+	# shellcheck disable=SC2164
 	cd "${OLD_PWD}"
 }

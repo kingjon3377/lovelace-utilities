@@ -3,11 +3,11 @@ cm_called_path=$_
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 check_mp3() {
-    lovelace_utilities_source_config
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        MP3_PLAYER=${MP3_PLAYER:-/media/mp3}
-        MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music/favorites}
-    fi
+	lovelace_utilities_source_config
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		MP3_PLAYER=${MP3_PLAYER:-/media/mp3}
+		MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music/favorites}
+	fi
 	if find "${MP3_PLAYER}" -maxdepth 0 -type d -empty | read -r; then
 		echo "Player not mounted or empty"
 		return 1
@@ -16,9 +16,9 @@ check_mp3() {
 	find ./*/ -type f | while read -r file;do
 		base="${file%.mp3}"
 		any=false
-        # TODO: Make extensions configurable; note that doing this without
-        # introducing shellcheck warnings would require an array, which is a
-        # bashism.
+		# TODO: Make extensions configurable; note that doing this without
+		# introducing shellcheck warnings would require an array, which is a
+		# bashism.
 		for ext in mp3 flac ogg wma rm m4a;do
 			if test -f "${MUSIC_COLLECTION}/${base}.${ext}"; then
 				any=true

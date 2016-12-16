@@ -49,5 +49,5 @@ z_not_rzip() {
 # $BASH_SOURCE, but is portable to other sh implementations
 if [ "${called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        z_not_rzip "$@"
+	z_not_rzip "$@"
 fi

@@ -5,13 +5,13 @@
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 get_favorite_images() {
-    lovelace_utilities_source_config
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        SOURCE_DIRECTORY=${SOURCE_DIRECTORY:-${HOME}/media/photos}
-        NEW_DIR=${NEW_DIR:-${HOME}/media/favorite_photos}
-        RECORD=${RECORD:-${NEW_DIR}/checked.txt}
-        FAV_FILE=${FAV_FILE:-${NEW_DIR}/favorite_photos.txt}
-    fi
+	lovelace_utilities_source_config
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		SOURCE_DIRECTORY=${SOURCE_DIRECTORY:-${HOME}/media/photos}
+		NEW_DIR=${NEW_DIR:-${HOME}/media/favorite_photos}
+		RECORD=${RECORD:-${NEW_DIR}/checked.txt}
+		FAV_FILE=${FAV_FILE:-${NEW_DIR}/favorite_photos.txt}
+	fi
 	pushd "${SOURCE_DIRECTORY}" > /dev/null
 	mkdir -p "${NEW_DIR}"
 	PIPE=$(mktemp -u)
@@ -24,7 +24,7 @@ get_favorite_images() {
 		keep_image "${file}"
 		test -f "${file}" || continue
 		pushd "${NEW_DIR}" > /dev/null
-        # TODO: Make the following process, in both branches, more generic, to work with other dialog implmentations etc.
+		# TODO: Make the following process, in both branches, more generic, to work with other dialog implmentations etc.
 		if test -n "${DISPLAY}"; then
 			width=$(identify -format "%w" "${file}"); width=$((width + 40))
 			height=$(identify -format "%h" "${file}"); height=$((height + 60))
@@ -66,5 +66,5 @@ get_favorite_images() {
 	popd > /dev/null
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        get_favorite_images "$@"
+	get_favorite_images "$@"
 fi

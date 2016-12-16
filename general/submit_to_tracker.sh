@@ -7,23 +7,23 @@
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 submit_to_tracker() {
-    lovelace_utilities_source_config
+	lovelace_utilities_source_config
 	if test $# -lt 5; then
 		echo "Usage: submit_to_tracker project type points tags name [state] [desc]" 1>&2
 		return 1
 	fi
-    if ! type project_name_to_id > /dev/null 2>&1; then
-        echo "Define project_name_to_id function in environment to use symbolic names"
-        echo "instead of Tracker project ID #s"
-        alias project_name_to_id=echo
-    fi
+	if ! type project_name_to_id > /dev/null 2>&1; then
+		echo "Define project_name_to_id function in environment to use symbolic names"
+		echo "instead of Tracker project ID #s"
+		alias project_name_to_id=echo
+	fi
 	local PROJECT=${PROJECT:-${1}}
 	PROJECT=$(project_name_to_id "${PROJECT}")
 	proj_ret=$?
 	if test ${proj_ret} -ne 0; then return ${proj_ret};fi
 	local STORY_TYPE=${STORY_TYPE:-${2}}
 	local POINTS=${POINTS:-${3}}
-    if [[ "$(declare -p PROJECTS_WITHOUT_CHORE_PTS 2>/dev/null)" =~ "declare -a" ]]; then
+	if [[ "$(declare -p PROJECTS_WITHOUT_CHORE_PTS 2>/dev/null)" =~ "declare -a" ]]; then
 		for proj in "${PROJECTS_WITHOUT_CHORE_PTS[@]}";do
 			if test "${PROJECT}" = "${proj}" -a \
 					"${STORY_TYPE}" = "chore" -a \
@@ -54,11 +54,11 @@ submit_tracker_release() {
 		return 1
 	fi
 	local PROJECT=${PROJECT:-${1}}
-    if ! type project_name_to_id > /dev/null 2>&1; then
-        echo "Define project_name_to_id function in environment to use symbolic names"
-        echo "instead of Tracker project ID #s"
-        alias project_name_to_id=echo
-    fi
+	if ! type project_name_to_id > /dev/null 2>&1; then
+		echo "Define project_name_to_id function in environment to use symbolic names"
+		echo "instead of Tracker project ID #s"
+		alias project_name_to_id=echo
+	fi
 	PROJECT=$(project_name_to_id "${PROJECT}")
 	proj_ret=$?
 	if test ${proj_ret} -ne 0; then return ${proj_ret};fi

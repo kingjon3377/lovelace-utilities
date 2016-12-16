@@ -3,10 +3,10 @@ stm_called_path=$_
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${stm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 send_to_mp3() {
-    lovelace_utilities_source_config
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        MP3_PLAYER=${MP3_PLAYER:-/media/mp3}
-    fi
+	lovelace_utilities_source_config
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		MP3_PLAYER=${MP3_PLAYER:-/media/mp3}
+	fi
 	for file in "$@";do
 		test -d "${MP3_PLAYER}/${file%/*}" || mkdir -p "${MP3_PLAYER}/${file%/*}"
 		test -f "${file}" || continue

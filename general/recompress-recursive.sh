@@ -43,5 +43,5 @@ recompress_recursive() {
 # $BASH_SOURCE, but is portable to other sh implementations
 if [ "${rr_called_path}" = "$0" ]; then
 #if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        recompress_recursive "$@"
+	recompress_recursive "$@"
 fi

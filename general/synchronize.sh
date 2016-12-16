@@ -4,11 +4,11 @@
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 synchronize() {
-    lovelace_utilities_source_config_bash
-    if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
-        DIRS_TO_SYNC=(  )
-        HOSTS_TO_SYNC=( )
-    fi
+	lovelace_utilities_source_config_bash
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		DIRS_TO_SYNC=(  )
+		HOSTS_TO_SYNC=( )
+	fi
 #	case $(hostname) in
 #	myrriddium)
 	[ -n "${DISPLAY}" ] && [ -z "${GRAPHICAL_SYNC}" ] && local DISPLAY=""
@@ -51,5 +51,5 @@ synchronize() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-        synchronize "$@"
+	synchronize "$@"
 fi
