@@ -92,8 +92,7 @@ backup_tracker() {
 	tmpfile=$(mktemp)
 	curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalid}" -X GET \
 			https://www.pivotaltracker.com/services/v5/projects | \
-			jq --unbuffered '.' |
-			grep '"id"' | sed 's/^[   ]*"id": \([0-9]*\),$/\1/' | \
+			jq --unbuffered -r '.[] | .id' |
 			cat - "${PIVOTAL_PROJECTS:-${HOME}/tracker_projects_list}" | sort -u | \
 			tee "${tmpfile}" | while read -r project;do
 		${LOVELACE_OPEN} "https://www.pivotaltracker.com/projects/${project}/export"
