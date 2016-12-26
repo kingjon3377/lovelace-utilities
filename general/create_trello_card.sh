@@ -37,6 +37,14 @@ errmsg() {
 # The ID or pattern is the only argument.
 translate_trello_board() {
 	lovelace_utilities_source_config_bash
+	if test $# -ne 1; then
+		errmsg "Usage: translate_trello_board board"
+		return 1
+	elif test -z "${1}"; then
+		errmsg "Usage: translate_trello_board board"
+		errmsg "Board must be nonempty"
+		return 1
+	fi
 	local board_json secrets pattern=${1} id_matches short_matches string_matches
 	secrets="key=${TRELLO_API_KEY:-invalidkey}&token=${TRELLO_API_TOKEN:-invalidtoken}"
 	board_json="$(curl -s -X GET "https://api.trello.com/1/members/me/boards?${secrets}")"
@@ -105,6 +113,15 @@ submit_trello_story() {
 		return 1
 	fi
 	local board=${1} list=${2}
+	if test -z "${board}"; then
+		errmsg "Usage: submit_trello_story board list title [description] [url]"
+		errmsg "Board must be nonempty"
+		return 1
+	elif test -z "${list}"; then
+		errmsg "Usage: submit_trello_story board list title [description] [url]"
+		errmsg "List must be nonempty"
+		return 1
+	fi
 	board="$(translate_trello_board "${board}")"
 	retval=$?
 	test ${retval} -eq 0 || return ${retval}
