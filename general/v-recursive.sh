@@ -13,8 +13,7 @@ v_recursive() {
 	else
 		echo Entering "$1" ...
 		for xx in "${1}"/*; do
-			v_recursive "$xx"
-			if [ $? -ne 0 ]; then
+			if ! v_recursive "$xx"; then
 				return 2
 			fi
 		done

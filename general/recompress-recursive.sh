@@ -31,8 +31,7 @@ recompress_recursive() {
 	else
 		#echo Entering "${filename}" ...
 		for xx in "${filename}"/*; do
-			recompress_recursive "${xx}" "$@"
-			if [ $? -ne 0 ]; then
+			if ! recompress_recursive "${xx}" "$@"; then
 				return 2
 			fi
 		done
