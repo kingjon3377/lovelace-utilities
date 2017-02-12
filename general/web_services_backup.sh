@@ -114,7 +114,7 @@ backup_mint() {
 		WGET="${WGET:-wget --progress=dot}"
 		LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
 	fi
-	LOVELACE_OPEN 'https://mint.intuit.com/transactionDownload.event?queryNew=&offset=0&filterType=cash&comparableType=8'
+	${LOVELACE_OPEN} 'https://mint.intuit.com/transactionDownload.event?queryNew=&offset=0&filterType=cash&comparableType=8'
 }
 backup_web_services() {
 	backup_goodreads && backup_librarything && backup_delicious && \
