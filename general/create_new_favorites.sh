@@ -30,6 +30,11 @@ create_new_favorites() {
 			cp -l "${MUSIC_COLLECTION}/${file}" "${file}"
 		elif test "${response}" = 'q'; then
 			break
+		elif test "${response}" = 'n'; then
+			continue
+		else
+			echo "grabchars isn't working anymore!" 1>&2
+			break
 		fi
 		popd > /dev/null
 		echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION_RECORD}"
