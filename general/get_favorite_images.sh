@@ -48,17 +48,24 @@ get_favorite_images() {
 				cp -l "${SOURCE_DIRECTORY}/${file}" "${file}"
 				echo "${NEW_DIR}/${file}" >> "${FAV_FILE}"
 			else
-				resp=$(grabchars -q"Is ${file} a favorite? " -b -cyn -dn)
+				resp=$(grabchars -q"Is ${file} a favorite? " -b -cynq -dn)
 				if test "${resp}" = y;then
 					mkdir -p "$(dirname "${file}")"
 					cp -l "${SOURCE_DIRECTORY}/${file}" "${file}"
 					echo "${NEW_DIR}/${file}" >> "${FAV_FILE}"
+				elif test "${resp}" = q;then
+					break
+				elif test "${resp}" = n;then
+					continue
+				else
+					echo "grabchars isn't working!" 1>&2
+					break
 				fi
 			fi
 		fi
 		popd > /dev/null
 		echo "${SOURCE_DIRECTORY}/${file}" >> "${RECORD}"
-		if test "$(grabchars -q"Keep going? " -b -cyn -dy -t3)" = n;then
+		if test "$(grabchars -q"Keep going? " -b -cyn -dy -t3)" != y;then
 			break
 		fi
 	done
