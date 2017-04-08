@@ -23,11 +23,13 @@ create_new_favorites() {
 		grep -q -x -F "${MUSIC_COLLECTION}/${file}" "${MUSIC_COLLECTION_RECORD}" && continue
 		pushd "${MUSIC_FAVORITES_DIR}" > /dev/null
 		"${PLAYER_COMMAND}" "${MUSIC_COLLECTION}/${file}" || return
-		response=$(grabchars -cyn -n1 -b -L -f -t10 -dn -q"Is ${file} a favorite? ")
+		response=$(grabchars -cynq -n1 -b -L -f -t10 -dn -q"Is ${file} a favorite? ")
 		echo
 		if test "${response}" = 'y'; then
 			mkdir -p "$(dirname "${file}")"
 			cp -l "${MUSIC_COLLECTION}/${file}" "${file}"
+		elif test "${response}" = 'q'; then
+			break
 		fi
 		popd > /dev/null
 		echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION_RECORD}"
