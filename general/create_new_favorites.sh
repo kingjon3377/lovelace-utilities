@@ -31,7 +31,7 @@ create_new_favorites() {
 		elif test "${response}" = 'q'; then
 			break
 		elif test "${response}" = 'n'; then
-			continue
+			:
 		else
 			echo "grabchars isn't working anymore!" 1>&2
 			break
