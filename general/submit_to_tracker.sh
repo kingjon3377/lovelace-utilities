@@ -39,7 +39,7 @@ submit_to_tracker() {
 	local STATE="${STATE:-${6}}"
 	local DESC="${DESC:-${7}}"
 	test -n "${TAGS}" && TAGS='"labels":['"$(echo "${TAGS}" | sed -e 's@^@"@' -e 's@$@"@' -e 's@,@","@g')"'], '
-	test -n "${POINTS}" -a "${POINTS}" != "0" && POINTS='"estimate": '"${POINTS}, "
+	test -n "${POINTS}" && POINTS='"estimate": '"$((POINTS)), "
 	test -n "${STATE}" && STATE='"current_state":"'"${STATE}"'", '
 	test -n "${DESC}" && DESC='"description":"'"$(echo "${DESC}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"'", '
 	json="{ ${TAGS}${POINTS}${STATE}${DESC} \"name\":\"${STORY_NAME}\", \"story_type\":\"${STORY_TYPE}\"}"
