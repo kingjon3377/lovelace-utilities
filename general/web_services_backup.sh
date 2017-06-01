@@ -116,11 +116,19 @@ backup_mint() {
 	fi
 	${LOVELACE_OPEN} 'https://mint.intuit.com/transactionDownload.event?queryNew=&offset=0&filterType=cash&comparableType=8'
 }
+backup_linkedin() {
+	lovelace_utilities_source_config_bash
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		WGET="${WGET:-wget --progress=dot}"
+		LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+	fi
+	${LOVELACE_OPEN} 'https://www.linkedin.com/psettings/member-data'
+}
 backup_web_services() {
 	backup_goodreads && backup_librarything && backup_delicious && \
 		backup_diigo && backup_facebook && backup_tracker && \
 		backup_mint && backup_simplenote && backup_wordpress && \
-		backup_gmail
+		backup_linkedin && backup_gmail
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
