@@ -18,15 +18,22 @@ Keyboard commands:
         i          - open images on page in web browser
 '''
 
-import curses.wrapper, curses.ascii
-import formatter, htmllib, locale, os, StringIO, re, readline, tempfile, zipfile
-import base64, webbrowser
+import curses.wrapper
+import curses.ascii
+import formatter
+import htmllib
+import locale
+import os
+import StringIO
+import re
+import tempfile
+import zipfile
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 try:
     from fabulous import image
-    import PIL
+    import Pillow
 except ImportError:
     images = False
 else:
@@ -36,13 +43,24 @@ locale.setlocale(locale.LC_ALL, 'en_US.utf-8')
 
 basedir = ''
 
+ESCAPE_KEYS = [ord('q'), curses.ascii.ESC]
+TOC_DOWN_LINE_KEYS = [curses.KEY_DOWN]
+TOC_UP_LINE_KEYS = [curses.KEY_UP]
+TOC_DOWN_PAGE_KEYS = [curses.KEY_NPAGE]
+TOC_UP_PAGE_KEYS = [curses.KEY_PPAGE]
+CHAPTER_DOWN_PAGE_KEYS = [curses.KEY_DOWN]
+CHAPTER_UP_PAGE_KEYS = [curses.KEY_UP]
+CHAPTER_DOWN_LINE_KEYS = [curses.KEY_NPAGE]
+CHAPTER_UP_LINE_KEYS = [curses.KEY_PPAGE]
+CHAPTERTOCSWITCH_KEYS = [curses.ascii.HT, curses.KEY_RIGHT, curses.KEY_LEFT]
+
 def run(screen, program, *args):
     curses.nocbreak()
     screen.keypad(0)
     curses.echo()
     pid = os.fork()
     if not pid:
-        os.execvp(program, (program,) +  args)
+        os.execvp(program, (program,) + args)
     os.wait()[0]
     curses.noecho()
     screen.keypad(1)
@@ -71,22 +89,26 @@ def open_image(screen, name, s):
 
 def textify(html_snippet, img_size=(80, 45), maxcol=72):
     ''' text dump of html '''
+    class Formatter(formatter.AbstractFormatter):
+        pass
+
     class Parser(htmllib.HTMLParser):
+
         def anchor_end(self):
             self.anchor = None
+
         def handle_image(self, source, alt, ismap, alight, width, height):
             global basedir
             self.handle_data(
                 '[img="{0}{1}" "{2}"]'.format(basedir, source, alt)
             )
 
-    class Formatter(formatter.AbstractFormatter):
-        pass
-
     class Writer(formatter.DumbWriter):
+
         def __init__(self, fl, maxcol=72):
             formatter.DumbWriter.__init__(self, fl)
             self.maxcol = maxcol
+
         def send_label_data(self, data):
             self.send_flowing_data(data)
             self.send_flowing_data(' ')
@@ -109,7 +131,7 @@ def table_of_contents(fl):
     if basedir:
         basedir = '{0}/'.format(basedir)
 
-    soup =  BeautifulSoup(fl.read(opf))
+    soup = BeautifulSoup(fl.read(opf))
 
     # title
     yield (soup.find('dc:title').text, None)
@@ -130,7 +152,7 @@ def table_of_contents(fl):
     z = {}
     if ncx:
         # get titles from the toc
-        soup =  BeautifulSoup(fl.read(ncx))
+        soup = BeautifulSoup(fl.read(ncx))
 
         for navpoint in soup('navpoint'):
             k = navpoint.content.get('src', None)
@@ -147,12 +169,13 @@ def table_of_contents(fl):
             yield (u'', section.encode('utf-8').strip())
 
 def list_chaps(screen, chaps, start, length):
-    for i, (title, src) in enumerate(chaps[start:start+length]):
+    for i, (title, src) in enumerate(chaps[start:start + length]):
         try:
             if start == 0:
                 screen.addstr(i, 0, '      {0}'.format(title), curses.A_BOLD)
             else:
-                screen.addstr(i, 0, '{0:-5} {1}'.format(start, title))
+                screen.clrtoeol()
+                screen.addstr(i, 0, '{0:-5} {1}'.format(start, title.strip()))
         except:
             pass
         start += 1
@@ -203,23 +226,17 @@ def curses_epub(screen, fl):
         screen.move(cursor_row, 0)
         ch = screen.getch()
 
-        # quit
-        if ch == curses.ascii.ESC:
+        if ch in ESCAPE_KEYS:
             return
-        try:
-           if chr(ch) == 'q':
-               return
-        except:
-            pass
 
         # up/down line
-        if ch in [curses.KEY_DOWN]:
+        if ch in TOC_DOWN_LINE_KEYS:
             if start < len(chaps) - maxy:
                 start += 1
                 screen.clear()
             elif cursor_row < maxy - 1 and cursor_row < len_chaps:
                 cursor_row += 1
-        elif ch in [curses.KEY_UP]:
+        elif ch in TOC_UP_LINE_KEYS:
             if start > 0:
                 start -= 1
                 screen.clear()
@@ -227,13 +244,13 @@ def curses_epub(screen, fl):
                 cursor_row -= 1
 
         # up/down page
-        elif ch in [curses.KEY_NPAGE]:
+        elif ch in TOC_DOWN_PAGE_KEYS:
             if start + maxy - 1 < len(chaps):
                 start += maxy - 1
                 if len_chaps < maxy:
                     start = len(chaps) - maxy
                 screen.clear()
-        elif ch in [curses.KEY_PPAGE]:
+        elif ch in TOC_UP_PAGE_KEYS:
             if start > 0:
                 start -= maxy - 1
                 if start < 0:
@@ -241,7 +258,7 @@ def curses_epub(screen, fl):
                 screen.clear()
 
         # to chapter
-        elif ch in [curses.ascii.HT, curses.KEY_RIGHT, curses.KEY_LEFT]:
+        elif ch in CHAPTERTOCSWITCH_KEYS:
             if chaps[start + cursor_row][1]:
                 html = fl.read(chaps[start + cursor_row][1])
                 soup = BeautifulSoup(html)
@@ -274,25 +291,20 @@ def curses_epub(screen, fl):
                 ch = screen.getch()
 
                 # quit
-                if ch == curses.ascii.ESC:
+                if ch in ESCAPE_KEYS:
                     return
-                try:
-                   if chr(ch) == 'q':
-                       return
-                except:
-                    pass
 
                 # to TOC
-                if ch in [curses.ascii.HT, curses.KEY_RIGHT, curses.KEY_LEFT]:
+                if ch in CHAPTERTOCSWITCH_KEYS:
                     screen.clear()
                     break
 
                 # up/down page
-                elif ch in [curses.KEY_DOWN]:
+                elif ch in CHAPTER_DOWN_PAGE_KEYS:
                     if chaps_pos[start + cursor_row] + maxy - 1 < len(chap):
                         chaps_pos[start + cursor_row] += maxy - 1
                         screen.clear()
-                elif ch in [curses.KEY_UP]:
+                elif ch in CHAPTER_UP_PAGE_KEYS:
                     if chaps_pos[start + cursor_row] > 0:
                         chaps_pos[start + cursor_row] -= maxy - 1
                         if chaps_pos[start + cursor_row] < 0:
@@ -300,11 +312,11 @@ def curses_epub(screen, fl):
                         screen.clear()
 
                 # up/down line
-                elif ch in [curses.KEY_NPAGE]:
+                elif ch in CHAPTER_DOWN_LINE_KEYS:
                     if chaps_pos[start + cursor_row] + maxy - 1 < len(chap):
                         chaps_pos[start + cursor_row] += 1
                         screen.clear()
-                elif ch in [curses.KEY_PPAGE]:
+                elif ch in CHAPTER_UP_LINE_KEYS:
                     if chaps_pos[start + cursor_row] > 0:
                         chaps_pos[start + cursor_row] -= 1
                         screen.clear()
@@ -320,7 +332,10 @@ def curses_epub(screen, fl):
                     try:
                         if chr(ch) == 'i':
                             for img in images:
-                                err = open_image(screen, img, fl.read(img))
+                                try:
+                                    err = open_image(screen, img, fl.read(img))
+                                except KeyError:
+                                    err = 'image not found'
                                 if err:
                                     screen.addstr(0, 0, err, curses.A_REVERSE)
 
@@ -352,10 +367,18 @@ if __name__ == '__main__':
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=__doc__,
     )
-    parser.add_argument('-d', '--dump', action='store_true',
-                        help='dump EPUB to text')
-    parser.add_argument('-c', '--cols', action='store', type=int, default=float("+inf"),
-                        help='Number of columns to wrap; default is no wrapping.')
+    parser.add_argument(
+        '-d', '--dump',
+        action='store_true',
+        help='dump EPUB to text'
+    )
+    parser.add_argument(
+        '-c', '--cols',
+        action='store',
+        type=int,
+        default=float("+inf"),
+        help='Number of columns to wrap; default is no wrapping.'
+    )
     parser.add_argument('EPUB', help='view EPUB')
     args = parser.parse_args()
 
