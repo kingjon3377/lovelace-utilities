@@ -124,14 +124,14 @@ def table_of_contents(fl):
     global basedir
 
     # find opf file
-    soup = BeautifulSoup(fl.read('META-INF/container.xml'))
+    soup = BeautifulSoup(fl.read('META-INF/container.xml'), "lxml")
     opf = dict(soup.find('rootfile').attrs)['full-path']
 
     basedir = os.path.dirname(opf)
     if basedir:
         basedir = '{0}/'.format(basedir)
 
-    soup = BeautifulSoup(fl.read(opf))
+    soup = BeautifulSoup(fl.read(opf), "lxml")
 
     # title
     yield (soup.find('dc:title').text, None)
@@ -152,7 +152,7 @@ def table_of_contents(fl):
     z = {}
     if ncx:
         # get titles from the toc
-        soup = BeautifulSoup(fl.read(ncx))
+        soup = BeautifulSoup(fl.read(ncx), "lxml")
 
         for navpoint in soup('navpoint'):
             k = navpoint.content.get('src', None)
@@ -195,7 +195,7 @@ def dump_epub(fl, maxcol=float("+inf")):
         print title
         print '-' * len(title)
         if src:
-            soup = BeautifulSoup(fl.read(src))
+            soup = BeautifulSoup(fl.read(src), "lxml")
             print textify(
                 unicode(soup.find('body')).encode('utf-8'),
                 maxcol=maxcol,
@@ -261,7 +261,7 @@ def curses_epub(screen, fl):
         elif ch in CHAPTERTOCSWITCH_KEYS:
             if chaps[start + cursor_row][1]:
                 html = fl.read(chaps[start + cursor_row][1])
-                soup = BeautifulSoup(html)
+                soup = BeautifulSoup(html, "lxml")
                 chap = textify(
                     unicode(soup.find('body')).encode('utf-8'),
                     img_size=screen.getmaxyx(),
