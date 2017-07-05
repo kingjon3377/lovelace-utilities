@@ -4,40 +4,68 @@
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 # TODO: Make a way to handle multiple 'favorites' directories (e.g. favorites, easter, xmas) at once
+# Creates, or maintains by asking only about files added to the main collection
+# since last checked, a "favorites" directory or directories. This relies on
+# several environment variables for configuration:
+# MUSIC_COLLECTION is the root directory under which the collection is stored.
+# MUSIC_ROOT_DIRS is an array of directories under that root to consider files from.
+# MUSIC_FAVORITES_DIRS is an array of "favorites"-type directories to maintain,
+# also under that root. Each will have "favorite" music hardlinked into it in a
+# tree mirroring the main collection.
 create_new_favorites() {
 	lovelace_utilities_source_config_bash
 	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
 		MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
 		MUSIC_ROOT_DIRS=( choirs itunes sorted )
-		MUSIC_FAVORITES_DIR=${MUSIC_FAVORITES_DIR:-${MUSIC_COLLECTION}/favorites}
-		MUSIC_COLLECTION_RECORD=${MUSIC_COLLECTION_RECORD:-${MUSIC_COLLECTION}/checked.txt}
+		MUSIC_FAVORITES_DIRS=( favorites xmas easter )
 		PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
 	fi
 	pushd "${MUSIC_COLLECTION}" > /dev/null
-	mkdir -p "${MUSIC_FAVORITES_DIR}"
+	for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
+		mkdir -p "${dir}"
+	done
 	PIPE=$(mktemp -u)
 	mkfifo -m600 "${PIPE}"
 	find "${MUSIC_ROOT_DIRS[@]}" -type f | sort >"${PIPE}" &
 	exec 3<"${PIPE}"
 	while read -r -u 3 file; do
-		grep -q -x -F "${MUSIC_COLLECTION}/${file}" "${MUSIC_COLLECTION_RECORD}" && continue
-		pushd "${MUSIC_FAVORITES_DIR}" > /dev/null
+		local missingfavorites=()
+		for collection in "${MUSIC_FAVORITES_DIRS[@]}";do
+			if ! grep -q -x -F "${MUSIC_COLLECTION}/${file}" "checked-${collection}.txt"; then
+				missingfavorites+=("${collection}")
+			fi
+		done
+		if test "${#missingfavorites}" -eq 0; then
+			continue
+		fi
 		"${PLAYER_COMMAND}" "${MUSIC_COLLECTION}/${file}" || return
-		response=$(grabchars -cynq -n1 -b -L -f -t10 -dn -q"Is ${file} a favorite? ")
+		for collection in "${missingfavorites[@]}";do
+			pushd "${MUSIC_COLLECTION}/${collection}" > /dev/null
+			response=$(grabchars -cyn -n1 -b -L -f -t10 -dn \
+				-q"Include ${file} in '${collection}'? ")
+			echo
+			if test "${response}" = 'y'; then
+				mkdir -p "$(dirname "${file}")"
+				cp -l "${MUSIC_COLLECTION}/${file}" "${file}"
+			elif test "${response}" = 'n'; then
+				:
+			else
+				echo "grabchars isn't working anymore!" 1>&2
+				break
+			fi
+			popd > /dev/null
+			echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
+		done
+		response=$(grabchars -cyn -n1 -b -L -f -t10 -dy -q"Keep going? ")
 		echo
-		if test "${response}" = 'y'; then
-			mkdir -p "$(dirname "${file}")"
-			cp -l "${MUSIC_COLLECTION}/${file}" "${file}"
-		elif test "${response}" = 'q'; then
+		if test "${response}" = 'n'; then
 			break
-		elif test "${response}" = 'n'; then
+		elif test "${response}" = 'y'; then
 			:
 		else
 			echo "grabchars isn't working anymore!" 1>&2
 			break
 		fi
-		popd > /dev/null
-		echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION_RECORD}"
 	done
 	rm "${PIPE}"
 }
