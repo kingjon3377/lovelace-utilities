@@ -22,6 +22,11 @@ submit_to_tracker() {
 	proj_ret=$?
 	if test ${proj_ret} -ne 0; then return ${proj_ret};fi
 	local STORY_TYPE=${STORY_TYPE:-${2}}
+	case "${STORY_TYPE}" in
+		bug|feature|chore) : ;;
+		release) echo "Use submit_tracker_release to create releases" 1>&2; return 3 ;;
+		*) echo "Story type must be one of bug, feature, or chore" 1>&2; return 3 ;;
+	esac
 	local POINTS=${POINTS:-${3}}
 	if [[ "$(declare -p PROJECTS_WITHOUT_CHORE_PTS 2>/dev/null)" =~ "declare -a" ]]; then
 		for proj in "${PROJECTS_WITHOUT_CHORE_PTS[@]}";do
