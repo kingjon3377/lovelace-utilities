@@ -49,9 +49,21 @@ submit_to_tracker() {
 	test -n "${DESC}" && DESC='"description":"'"$(echo "${DESC}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"'", '
 	json="{ ${TAGS}${POINTS}${STATE}${DESC} \"name\":\"${STORY_NAME}\", \"story_type\":\"${STORY_TYPE}\"}"
 #	echo "${json}" | jq '.'
-	curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
-		-X POST -d "${json}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories" \
-			|| return 4
+	submit_tracker_json() {
+		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
+			-X POST -d "${1}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories"
+	}
+	if type jq > /dev/null; then
+		id=$(submit_tracker_json "${json}" 2>/dev/null | jq -e '.id')
+		if test $? != 0 || test "${id}" = null; then
+			echo "Adding story apparently failed"
+			return 4
+		else
+			echo "Story is now ID #${id}"
+		fi
+	else
+		submit_tracker_json "${json}" || return 4
+	fi
 }
 submit_tracker_release() {
 	if test $# -lt 4; then
