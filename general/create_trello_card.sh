@@ -47,7 +47,7 @@ translate_trello_board() {
 	fi
 	local board_json secrets pattern=${1} id_matches short_matches string_matches
 	secrets="key=${TRELLO_API_KEY:-invalidkey}&token=${TRELLO_API_TOKEN:-invalidtoken}"
-	board_json="$(curl -s -X GET "https://api.trello.com/1/members/me/boards?${secrets}")"
+	board_json="$(curl -s -X GET "https://api.trello.com/1/members/me/boards?${secrets}" 2>/dev/null)"
 	retval=$?
 	test ${retval} -eq 0 || return ${retval}
 	matcher() {
@@ -80,7 +80,7 @@ translate_trello_list() {
 	lovelace_utilities_source_config_bash
 	local board_json secrets pattern=${2} id_matches string_matches
 	secrets="key=${TRELLO_API_KEY:-invalidkey}&token=${TRELLO_API_TOKEN:-invalidtoken}"
-	board_json="$(curl -s -X GET "https://api.trello.com/1/boards/${1}/lists?${secrets}")"
+	board_json="$(curl -s -X GET "https://api.trello.com/1/boards/${1}/lists?${secrets}" 2>/dev/null)"
 	retval=$?
 	test ${retval} -eq 0 || return ${retval}
 	matcher() {
@@ -137,5 +137,11 @@ submit_trello_story() {
 	data="idList=${list}&token=${TRELLO_API_TOKEN:-invalidtoken}&key=${TRELLO_API_KEY:-invalidkey}&name=${story_title}"
 	test -n "${story_desc}" && data="${data}&desc=$(echo "${story_desc}" | minimal_sanitize)"
 	test -n "${story_url}" && data="${data}&urlSource=$(echo "${story_url}" | minimal_sanitize)"
-	curl -s -X POST --data "${data}" "https://api.trello.com/1/cards"
+    id=$(curl -s -X POST --data "${data}" "https://api.trello.com/1/cards" 2>/dev/null | jq -e '.id')
+    if test $? != 0 || test "${id}" = null; then
+        echo "Adding card apparently failed"
+        return 3
+    else
+        echo "Added card with ID #${id}"
+    fi
 }
