@@ -65,7 +65,13 @@ submit_to_tracker() {
 		submit_tracker_json "${json}" || return 4
 	fi
 }
+
+# Create a Tracker "release" story. Note that this now requires the *GNU*
+# "date" command; if on MacOS, install GNU coreutils using Homebrew, MacPorts,
+# Gentoo Prefix, or some other way and use your PATH or an alias so that this
+# sees that rather than the MacOS default /bin/date.
 submit_tracker_release() {
+	lovelace_utilities_source_config
 	if test $# -lt 4; then
 		echo "Usage: submit_tracker_release project tags name due_date [state] [desc]" 1>&2
 		return 1
@@ -84,14 +90,24 @@ submit_tracker_release() {
 	local DUE="${DUE:-${4}}"
 	local STATE="${STATE:-${5}}"
 	local DESC="${DESC:-${6}}"
-	test -n "${TAGS}" && TAGS="<labels>${TAGS}</labels>"
-	STORY_NAME="<name>${STORY_NAME}</name>"
-	DUE="<deadline type=\"datetime\">${DUE}</deadline>"
-	test -n "${STATE}" && STATE="<current_state>${STATE}</current_state>"
-	test -n "${DESC}" && DESC="<description>${DESC}</description>"
-	curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" \
-		-H "Content-type: application/xml" \
-		-X POST \
-		-d "<story><story_type>release</story_type>${STORY_NAME}${TAGS}${STATE}${DESC}${DUE}</story>" \
-			"https://www.pivotaltracker.com/services/v3/projects/${PROJECT}/stories" || return 4
+	test -n "${TAGS}" && TAGS=', "labels":['"$(echo "${TAGS}" | sed -e 's@^@"@' -e 's@$@"@' -e 's@,@","@g')"']'
+	test -n "${DUE}" && DUE=', "deadline":"'"$(date -d "${DUE}" "+%FT%T.%3NZ")"'"'
+	test -n "${STATE}" && STATE=', "current_state":"'"${STATE}"'"'
+	test -n "${DESC}" && DESC=', "description":"'"$(echo "${DESC}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"'"'
+	json="{ \"story_type\":\"release\", \"name\":\"${STORY_NAME}\"${TAGS}${STATE}${DUE}${DESC} }"
+	submit_tracker_json() {
+		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
+			-X POST -d "${json}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories"
+	}
+	if type jq > /dev/null; then
+		id=$(submit_tracker_json "${json}" 2>/dev/null | jq -e '.id')
+		if test $? != 0 || test "${id}" = null; then
+			echo "Adding release apparently failed"
+			return 4
+		else
+			echo "Release is now ID #${id}"
+		fi
+	else
+		submit_tracker_json "${json}" || return 4
+	fi
 }
