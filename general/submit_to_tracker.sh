@@ -9,7 +9,7 @@
 submit_to_tracker() {
 	lovelace_utilities_source_config
 	if test $# -lt 5; then
-		echo "Usage: submit_to_tracker project type points tags name [state] [desc]" 1>&2
+		echo "Usage: submit_to_tracker project type points tags name [state] [desc] [tasks ...]" 1>&2
 		return 1
 	fi
 	if ! type project_name_to_id > /dev/null 2>&1; then
@@ -43,11 +43,23 @@ submit_to_tracker() {
 	STORY_NAME="$(echo "${STORY_NAME}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"
 	local STATE="${STATE:-${6}}"
 	local DESC="${DESC:-${7}}"
+	shift 7
+	local TASKS
+	if test $# -ne 0; then
+		TASKS=', "tasks":['
+		while test $# -gt 1; do
+			TASKS="${TASKS}{\"description\":\"${1}\"},"
+			shift
+		done
+		TASKS="${TASKS}{\"description\":\"${1}\"}]"
+	else
+		TASKS=""
+	fi
 	test -n "${TAGS}" && TAGS='"labels":['"$(echo "${TAGS}" | sed -e 's@^@"@' -e 's@$@"@' -e 's@,@","@g')"'], '
 	test -n "${POINTS}" && POINTS='"estimate": '"$((POINTS)), "
 	test -n "${STATE}" && STATE='"current_state":"'"${STATE}"'", '
 	test -n "${DESC}" && DESC='"description":"'"$(echo "${DESC}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"'", '
-	json="{ ${TAGS}${POINTS}${STATE}${DESC} \"name\":\"${STORY_NAME}\", \"story_type\":\"${STORY_TYPE}\"}"
+	json="{ ${TAGS}${POINTS}${STATE}${DESC} \"name\":\"${STORY_NAME}\", \"story_type\":\"${STORY_TYPE}\"${TASKS}}"
 #	echo "${json}" | jq '.'
 	submit_tracker_json() {
 		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
