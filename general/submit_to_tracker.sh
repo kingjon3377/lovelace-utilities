@@ -48,10 +48,10 @@ submit_to_tracker() {
 	if test $# -ne 0; then
 		TASKS=', "tasks":['
 		while test $# -gt 1; do
-			TASKS="${TASKS}{\"description\":\"${1}\"},"
+			TASKS="${TASKS}{\"description\":\"$(echo -n "${1}" | sed 's@"@\\"@g')\"},"
 			shift
 		done
-		TASKS="${TASKS}{\"description\":\"${1}\"}]"
+		TASKS="${TASKS}{\"description\":\"$(echo -n "${1}" | sed 's@"@\\"@g')\"}]"
 	else
 		TASKS=""
 	fi
