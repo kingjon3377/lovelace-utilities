@@ -66,9 +66,13 @@ submit_to_tracker() {
 			-X POST -d "${1}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories"
 	}
 	if type jq > /dev/null; then
-		id=$(submit_tracker_json "${json}" 2>/dev/null | jq -e '.id')
+		ret_json=$(submit_tracker_json "${json}" 2>/dev/null)
+		id=$(echo "${ret_json}" | jq -e '.id')
 		if test $? != 0 || test "${id}" = null; then
 			echo "Adding story apparently failed"
+			if test "${STT_DEBUG:-false}" = true; then
+				echo "${ret_json}"
+			fi
 			return 4
 		else
 			echo "Story is now ID #${id}"
