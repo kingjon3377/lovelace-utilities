@@ -71,7 +71,7 @@ submit_to_tracker() {
 		if test $? != 0 || test "${id}" = null; then
 			echo "Adding story apparently failed"
 			if test "${STT_DEBUG:-false}" = true; then
-				echo "${ret_json}"
+				echo "${ret_json}" | jq '.'
 			fi
 			return 4
 		else
