@@ -43,7 +43,7 @@ submit_to_tracker() {
 	STORY_NAME="$(echo "${STORY_NAME}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"
 	local STATE="${STATE:-${6}}"
 	local DESC="${DESC:-${7}}"
-	shift 7
+	shift;shift;shift;shift;shift;shift;shift
 	local TASKS
 	if test $# -ne 0; then
 		TASKS=', "tasks":['
@@ -71,6 +71,9 @@ submit_to_tracker() {
 		if test $? != 0 || test "${id}" = null; then
 			echo "Adding story apparently failed"
 			if test "${STT_DEBUG:-false}" = true; then
+				echo "You submitted:";
+				echo "${json}" | jq '.'
+				echo; echo "They replied:"
 				echo "${ret_json}" | jq '.'
 			fi
 			return 4
