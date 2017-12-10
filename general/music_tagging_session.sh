@@ -13,15 +13,16 @@ if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
 fi
 setup() {
 	find "${MUSIC_ROOT_DIRS[@]/#/${MUSIC_COLLECTION}/}" -type d | while read -r a; do
-		pushd "${a}" > /dev/null
+		pushd "${a}" > /dev/null || continue
 	done
 	until [ -e .bookmark ]; do
-		popd > /dev/null
+		popd > /dev/null || continue
 	done
 	dirs
 	ls
 }
 
+# shellcheck disable=SC2164
 advance() {
 	rm .bookmark;popd;touch .bookmark;ls
 }

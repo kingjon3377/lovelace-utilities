@@ -36,15 +36,27 @@ synchronize() {
 				continue
 			fi
 			if [ -x "${a}/.synchronize.sh" ]; then
-				pushd "${a}" > /dev/null
-				./.synchronize.sh "${host}" || return $?
-				popd > /dev/null
+				if pushd "${a}" > /dev/null; then
+					./.synchronize.sh "${host}" || return $?
+					if ! popd > /dev/null; then
+						echo "Failed to return from ${a}. Aborting!" 1>&2
+						return 5
+					fi
+				else
+					echo "Failed to enter ${a} for pre-unison sync" 1>&2
+				fi
 			fi
 			unison "${a}" "ssh://${host}/${a}" || return $?
 			if [ -x "${a}/.postsync.sh" ];then
-				pushd "${a}" > /dev/null
-				./.postsync.sh "${host}" || return $?
-				popd > /dev/null
+				if pushd "${a}" > /dev/null; then
+					./.postsync.sh "${host}" || return $?
+					if ! popd > /dev/null; then
+						echo "Failed to return from ${a}. Aborting!" 1>&2
+						return 5
+					fi
+				else
+					echo "Failed to enter ${a} for post-unison script" 1>&2
+				fi
 			fi
 		done
 	done

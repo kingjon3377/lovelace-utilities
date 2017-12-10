@@ -20,7 +20,10 @@ create_new_favorites() {
 		MUSIC_FAVORITES_DIRS=( favorites xmas easter )
 		PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
 	fi
-	pushd "${MUSIC_COLLECTION}" > /dev/null
+	if ! pushd "${MUSIC_COLLECTION}" > /dev/null; then
+		echo "Couldn't enter MUSIC_COLLECTION root directory" 1>&2
+		return 3
+	fi
 	for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
 		mkdir -p "${dir}"
 	done
@@ -40,7 +43,10 @@ create_new_favorites() {
 		fi
 		"${PLAYER_COMMAND}" "${MUSIC_COLLECTION}/${file}" || return
 		for collection in "${missingfavorites[@]}";do
-			pushd "${MUSIC_COLLECTION}/${collection}" > /dev/null
+			if ! pushd "${MUSIC_COLLECTION}/${collection}" > /dev/null; then
+				echo "Couldn't enter subdirectory ${collection}; continuing ..." 1>&2
+				continue
+			fi
 			response=$(grabchars -cyn -n1 -b -L -f -t10 -dn \
 				-q"Include ${file} in '${collection}'? ")
 			echo
@@ -53,7 +59,10 @@ create_new_favorites() {
 				echo "grabchars isn't working anymore!" 1>&2
 				break
 			fi
-			popd > /dev/null
+			if ! popd > /dev/null; then
+				echo "Failed to leave ${collection} subdirectory. Aborting!" 1>&2
+				return 3
+			fi
 			echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
 		done
 		response=$(grabchars -cyn -n1 -b -L -f -t10 -dy -q"Keep going? ")

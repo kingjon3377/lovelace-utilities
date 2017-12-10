@@ -12,7 +12,10 @@ get_favorite_images() {
 		RECORD=${RECORD:-${NEW_DIR}/checked.txt}
 		FAV_FILE=${FAV_FILE:-${NEW_DIR}/favorite_photos.txt}
 	fi
-	pushd "${SOURCE_DIRECTORY}" > /dev/null
+	if ! pushd "${SOURCE_DIRECTORY}" > /dev/null; then
+		echo "Can't enter SOURCE_DIRECTORY" 1>&2
+		return 3
+	fi
 	mkdir -p "${NEW_DIR}"
 	PIPE=$(mktemp -u)
 	mkfifo -m600 "${PIPE}"
@@ -23,7 +26,10 @@ get_favorite_images() {
 		grep -q -x -F "${SOURCE_DIRECTORY}/${file}" "${RECORD}" && continue
 		keep_image "${file}"
 		test -f "${file}" || continue
-		pushd "${NEW_DIR}" > /dev/null
+		if ! pushd "${NEW_DIR}" > /dev/null; then
+			echo "Can't enter NEW_DIR" 1>&2
+			return 4
+		fi
 		# TODO: Make the following process, in both branches, more generic, to work with other dialog implmentations etc.
 		if test -n "${DISPLAY}"; then
 			width=$(identify -format "%w" "${file}"); width=$((width + 40))
@@ -63,14 +69,17 @@ get_favorite_images() {
 				fi
 			fi
 		fi
-		popd > /dev/null
+		if ! popd > /dev/null; then
+			echo "Failed to return to SOURCE_DIRECTORY" 1>&2
+			return 5
+		fi
 		echo "${SOURCE_DIRECTORY}/${file}" >> "${RECORD}"
 		if test "$(grabchars -q"Keep going? " -b -cyn -dy -t3)" != y;then
 			break
 		fi
 	done
 	rm "${PIPE}"
-	popd > /dev/null
+	popd > /dev/null || return $?
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	get_favorite_images "$@"
