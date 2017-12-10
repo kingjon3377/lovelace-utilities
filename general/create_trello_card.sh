@@ -53,9 +53,9 @@ translate_trello_board() {
 	matcher() {
 		jq -r '.[] | {name,shortLink,id} | select('"${1}"') | .id'
 	}
-	id_matches=($(echo "${board_json}" | matcher ".id == \"${pattern}\""))
-	short_matches=($(echo "${board_json}" | matcher ".shortLink == \"${pattern}\""))
-	string_matches=($(echo "${board_json}" | matcher ".name | contains(\"${pattern}\")"))
+	read -r -a id_matches < <(echo "${board_json}" | matcher ".id == \"${pattern}\"")
+	read -r -a short_matches < <(echo "${board_json}" | matcher ".shortLink == \"${pattern}\"")
+	read -r -a string_matches < <(echo "${board_json}" | matcher ".name | contains(\"${pattern}\")")
 	if test "${#id_matches[@]}" -eq 1; then
 		echo "${id_matches[0]}"
 	elif test "${#short_matches[@]}" -eq 1; then
@@ -86,8 +86,8 @@ translate_trello_list() {
 	matcher() {
 		jq -r '.[] | {name,id} | select('"${1}"') | .id'
 	}
-	id_matches=($(echo "${board_json}" | matcher ".id == \"${pattern}\""))
-	string_matches=($(echo "${board_json}" | matcher ".name | contains(\"${pattern}\")"))
+	read -r -a id_matches < <(echo "${board_json}" | matcher ".id == \"${pattern}\"")
+	read -r -a string_matches < <(echo "${board_json}" | matcher ".name | contains(\"${pattern}\")")
 	if test "${#id_matches[@]}" -eq 1; then
 		echo "${id_matches[0]}"
 	elif test "${#string_matches[@]}" -eq 1; then
