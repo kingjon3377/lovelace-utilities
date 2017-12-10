@@ -40,7 +40,7 @@ z_not_rzip() {
 		bzip2 "$filename"
 		echo "bzipping $filename ..."
 	else
-		echo "$0: Shouldn\'t get here\!"
+		echo "$0: Shouldn't get here!"
 		beep
 		return 1
 	fi

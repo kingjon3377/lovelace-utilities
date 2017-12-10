@@ -12,7 +12,7 @@ test_music_links() {
 	cd "${MUSIC_COLLECTION}" || return
 	for root_dir in "${MUSIC_ROOT_DIRS[@]}"; do
 		for favorite_dir in "${MUSIC_FAVORITES_DIRS[@]}"; do
-			regex="s:^Files ${favorite_dir}/${root_dir}/\([^ ]*\) and ${root_dir}/\1 differ\$:\1:"
+			regex="s:^Files ${favorite_dir}/${root_dir}/\\([^ ]*\\) and ${root_dir}/\\1 differ\$:\\1:"
 			diff -rq "${root_dir}" "${favorite_dir}/${root_dir}"|grep -v "^Only in ${root_dir}"|\
 				sed -e "${regex}"
 		done

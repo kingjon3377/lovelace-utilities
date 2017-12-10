@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 #if [ "${called_path}" != "$0" ]; then
-        echo "Don\'t source this!" 1>&2
+        echo "Don't source this!" 1>&2
 	return 1
 #elif [ $UID -ne 0 ]; then
 elif [ "$(id -ru)" -ne 0 ]; then

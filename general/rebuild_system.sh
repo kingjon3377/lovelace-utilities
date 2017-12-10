@@ -4,7 +4,7 @@ called_path=$_
 # $BASH_SOURCE, but is portable to other sh implementations
 if [ "${called_path}" != "$0" ]; then
 #if [ "${BASH_SOURCE[0]}" != "$0" ]; then
-        echo "Don\'t source this!"
+        echo "Don't source this!"
 	return 1
 elif [ "$(id -ru)" -ne 0 ]; then
 	exec sudo "$0"

@@ -86,7 +86,7 @@ v_if_possible() {
 		echo "lrzipping ${filename} ..."
 		lrzip -z -D -N 0 "${filename}"
 	else
-		echo "${cmd}: Shouldn\'t get here\!"
+		echo "${cmd}: Shouldn't get here!"
 		beep
 		return 1
 	fi

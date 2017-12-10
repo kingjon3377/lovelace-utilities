@@ -77,7 +77,7 @@ z_if_possible() {
 		echo "lrzipping ${filename} ..."
 		lrzip -z -q -D -N 0 "${filename}"
 	else
-		echo "z_if_possible: Shouldn't get here\!"
+		echo "z_if_possible: Shouldn't get here!"
 		beep
 		return 1
 	fi

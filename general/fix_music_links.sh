@@ -20,8 +20,8 @@ fix_music_links() {
 	cd "${MUSIC_COLLECTION}" || return
 	for root_dir in "${MUSIC_ROOT_DIRS[@]}"; do
 		for favorite_dir in "${MUSIC_FAVORITES_DIRS[@]}"; do
-			regexOne="s:^Files ${favorite_dir}/${root_dir}/\([^ ]*\) and ${root_dir}/\1 differ\$:\1:"
-			regexTwo="s:^Files ${root_dir}/\([^ ]*\) and ${favorite_dir}/${root_dir}/\1 differ\$:\1:"
+			regexOne="s:^Files ${favorite_dir}/${root_dir}/\\([^ ]*\\) and ${root_dir}/\\1 differ\$:\\1:"
+			regexTwo="s:^Files ${root_dir}/\\([^ ]*\\) and ${favorite_dir}/${root_dir}/\\1 differ\$:\\1:"
 			for file in $(diff -rq "${root_dir}" "${favorite_dir}/${root_dir}"|grep -v "^Only in ${root_dir}"|\
 					sed -e "${regexOne}" -e "${regexTwo}");do
 				fml_link "${root_dir}/${file}" "${favorite_dir}/${root_dir}/${file}"
