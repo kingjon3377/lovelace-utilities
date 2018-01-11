@@ -105,8 +105,9 @@ backup_simplenote() {
 	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
 		WGET="${WGET:-wget --progress=dot}"
 		LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+		SIMPLENOTE_USERNAME="invalid%40example.com"
 	fi
-	${LOVELACE_OPEN} 'http://simplenote-export.appspot.com/'
+	${LOVELACE_OPEN} "https://app.simplenote.com/export/download?key=${SIMPLENOTE_USERNAME:-invalid%40example.com}"
 }
 backup_mint() {
 	lovelace_utilities_source_config_bash
