@@ -9,8 +9,6 @@ synchronize() {
 		DIRS_TO_SYNC=(  )
 		HOSTS_TO_SYNC=( )
 	fi
-#	case $(hostname) in
-#	myrriddium)
 	[ -n "${DISPLAY}" ] && [ -z "${GRAPHICAL_SYNC}" ] && local DISPLAY=""
 	cd "${HOME}" || return 2
 	ALIVE_HOSTS=()
