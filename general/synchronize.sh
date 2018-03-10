@@ -11,15 +11,28 @@ synchronize() {
 	fi
 	[ -n "${DISPLAY}" ] && [ -z "${GRAPHICAL_SYNC}" ] && local DISPLAY=""
 	cd "${HOME}" || return 2
+	same_uname() {
+		test "$(uname)" = "$(ssh "${1}" uname)" || test "${IGNORE_UNAME:-false}" = true
+	}
 	ALIVE_HOSTS=()
 	for host in "${HOSTS_TO_SYNC[@]}"; do
 		if [ "${host}" = "$(hostname)" ]; then
 			# Don't synchronize with ourself
 			continue
 		elif ping -c1 "${host}.local" > /dev/null 2>&1; then
-			ALIVE_HOSTS+=( "${host}.local" )
+			if same_uname "${host}.local"; then
+				ALIVE_HOSTS+=( "${host}.local" )
+			else
+				echo "${host} is booted into a different OS, skipping ..." 1>&2
+				continue
+			fi
 		elif ping -c1 "${host}" > /dev/null 2>&1; then
-			ALIVE_HOSTS+=( "${host}" )
+			if same_uname "${host}"; then
+				ALIVE_HOSTS+=( "${host}" )
+			else
+				echo "${host} is booted into a different OS, skipping ..." 1>&2
+				continue
+			fi
 		else
 			echo "${host} is not available" 1>&2
 			continue
