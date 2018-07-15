@@ -57,7 +57,11 @@ synchronize() {
 					echo "Failed to enter ${a} for pre-unison sync" 1>&2
 				fi
 			fi
-			unison "${a}" "ssh://${host}/${a}" || return $?
+			if test "${GRAPHICAL_SYNC:-no}" = yes; then
+				unison -ui graphic "${a}" "ssh://${host}/${a}" || return $?
+			else
+				unison "${a}" "ssh://${host}/${a}" || return $?
+			fi
 			if [ -x "${a}/.postsync.sh" ];then
 				if pushd "${a}" > /dev/null; then
 					./.postsync.sh "${host}" || return $?
