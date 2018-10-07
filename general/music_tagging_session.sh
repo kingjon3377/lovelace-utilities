@@ -1,7 +1,7 @@
 #!/bin/bash
 # This is designed to be sourced in bash.
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-	echo "Source this file, don\'t execute it."
+	echo "Source this file, don't execute it."
 	exit 1
 fi
 # shellcheck source=./lovelace-utilities-source-config.sh
