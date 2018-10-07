@@ -1,5 +1,4 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
 # FIXME: Support alternate suspend command, loading it from config
 # We want to use substitution on the parameters array, which I think is a bashism
 
@@ -44,7 +43,7 @@ suspend_but_wake() {
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+#if [ "${called_path}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	suspend_after_emerge "$@"
 fi
