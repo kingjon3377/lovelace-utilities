@@ -27,8 +27,8 @@ convert_video() {
 			esac ;;
 			*) echo "Unknown extension"; return 2 ;;
 		esac
-		if [ -e "${BASE}.ogg" ]; then
-			echo "${BASE}.ogg already exists, skipping ..."
+		if [ -e "${DEST}" ]; then
+			echo "${DEST} already exists, skipping ..."
 			return
 		fi
 		ffmpeg -i "${orig}" -vn -acodec copy "${DEST}" || return $?
