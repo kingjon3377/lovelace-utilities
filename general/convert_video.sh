@@ -14,7 +14,13 @@ convert_video() {
 	else
 		orig="${1}"
 		case "${orig}" in
-			*flv) BASE="${1%.flv}" DEST="${BASE}.ogg" ;;
+			*flv) BASE="${1%.flv}"
+			codec=$(midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//')
+			case "${codec}" in
+			ffopus|ffvorbis) DEST="${BASE}.ogg" ;;
+			ffaac) DEST="${BASE}.m4a" ;;
+			*) echo "Unknown codec ${codec} in flv"; return 3 ;;
+			esac ;;
 			*mp4) BASE="${1%.mp4}" DEST="${BASE}.m4a" ;;
 			*webm) BASE="${1%.webm}" DEST="${BASE}.ogg" ;;
 			*3gpp) BASE="${1%.3gpp}" DEST="${BASE}.m4a" ;;
