@@ -19,6 +19,7 @@ convert_video() {
 			case "${codec}" in
 			ffopus|ffvorbis) DEST="${BASE}.ogg" ;;
 			ffaac) DEST="${BASE}.m4a" ;;
+			mpg123) DEST="${BASE}.mp3" ;;
 			*) echo "Unknown codec ${codec} in flv"; return 3 ;;
 			esac ;;
 			*mp4) BASE="${1%.mp4}" DEST="${BASE}.m4a" ;;
@@ -29,6 +30,7 @@ convert_video() {
 			case "${codec}" in
 			ffopus|ffvorbis) DEST="${BASE}.ogg" ;;
 			ffaac) DEST="${BASE}.m4a" ;;
+			mpg123) DEST="${BASE}.mp3" ;;
 			*) echo "Unknown codec ${codec} in mkv"; return 3 ;;
 			esac ;;
 			*) echo "Unknown extension"; return 2 ;;
