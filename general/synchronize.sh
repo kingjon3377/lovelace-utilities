@@ -14,19 +14,22 @@ synchronize() {
 	same_uname() {
 		test "$(uname)" = "$(ssh "${1}" uname)" || test "${IGNORE_UNAME:-false}" = true
 	}
+	host_present() {
+		getent hosts "${1}" > /dev/null 2>&1 && ping -c1 "${1}" > /dev/null 2>&1
+	}
 	ALIVE_HOSTS=()
 	for host in "${HOSTS_TO_SYNC[@]}"; do
 		if [ "${host}" = "$(hostname)" ]; then
 			# Don't synchronize with ourself
 			continue
-		elif ping -c1 "${host}.local" > /dev/null 2>&1; then
+		elif host_present "${host}.local"; then
 			if same_uname "${host}.local"; then
 				ALIVE_HOSTS+=( "${host}.local" )
 			else
 				echo "${host} is booted into a different OS, skipping ..." 1>&2
 				continue
 			fi
-		elif ping -c1 "${host}" > /dev/null 2>&1; then
+		elif host_present "${host}"; then
 			if same_uname "${host}"; then
 				ALIVE_HOSTS+=( "${host}" )
 			else
