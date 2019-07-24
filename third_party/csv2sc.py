@@ -1,11 +1,11 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 # From http://www.linuxjournal.com/article/10699
 
 import sys
 import string
 
 if len(sys.argv) < 2:
-    print "Usage: %s infile [outfile] [delimiter_char]" % sys.argv[0]
+    print("Usage:", sys.argv[0], "infile [outfile] [delimiter_char]")
     sys.exit(1)
 
 filename_in = sys.argv[1]
@@ -19,7 +19,7 @@ else:
 delimiter = ':'
 if len(sys.argv) == 4:
     delimiter = sys.argv[3][0]
-    print 'using delimiter %c' % delimiter
+    print('using delimiter', delimiter)
 
 infile = open(filename_in, 'r')
 
@@ -29,7 +29,7 @@ row=0
 for line in infile.readlines():
     allp = line.rstrip().split(delimiter)
     if len(allp) > 25:
-        print "i'm too simple to handle more than 26 many columns"
+        print("i'm too simple to handle more than 26 many columns")
         sys.exit(2)
     column = 0
     for p in allp:
