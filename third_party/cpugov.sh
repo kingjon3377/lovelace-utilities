@@ -11,11 +11,10 @@
 # "userspace" mode is in effect.
 dolistgov() {
 	# Read current governor from CPU0
-	read currgov < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
+	read -r currgov < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
 
 	# Read list of available governors for CPU0, and store in array "governor"
-	read < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors"
-	governor=(${REPLY})
+	read -r -a governor < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors"
 	govmax=${#governor[@]}
 
 	# If current governor is "userspace", also enable listing/setting of
@@ -23,13 +22,13 @@ dolistgov() {
 	if [ "${currgov}" = "userspace" ]; then
 
 		# Read current frequency from CPU0
-		read currfreq < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
+		read -r currfreq < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
 
 		# Read list of available frequencies from CPU0
-		read freqlist < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies"
+		read -r -a freqlist < "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies"
 
 		# Append frequency list to governor list
-		governor=("${governor[@]}" ${freqlist})
+		governor=("${governor[@]}" "${freqlist[@]}")
 	fi
 	echo "Available cpu settings"
 
@@ -64,7 +63,7 @@ dosetgov() {
 	dolistgov
 
 	# Read a numeric choice from the keyboard.
-   read choice
+        read -r choice
 
 	# Exit if not a valid choice.
 	if ! [[ ${choice} =~ ^[-+]?[0-9]+$ ]]; then
