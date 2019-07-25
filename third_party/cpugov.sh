@@ -35,7 +35,7 @@ dolistgov() {
 	# Set loop start and end values
 	pointer=0
 	arraysize=${#governor[@]}
-	while [ ${pointer} -lt ${arraysize} ]; do
+	while [ ${pointer} -lt "${arraysize}" ]; do
 		# Array starts from zero, but selection numbering starts from
 		# 1, so add 1 to index pointer
 		pointerplus=$(( pointer + 1))
@@ -75,12 +75,12 @@ dosetgov() {
 	elif [ "${choice}" -lt 0 ]; then
 		echo "Error: Invalid value"
 		exit
-	elif [ "${choice}" -gt ${arraysize} ]; then
+	elif [ "${choice}" -gt "${arraysize}" ]; then
 		echo "Error: Invalid value"
 		exit
 
 	# If a governor is selected, apply to all CPUs
-	elif [ "${choice}" -le ${govmax} ]; then
+	elif [ "${choice}" -le "${govmax}" ]; then
 		choiceminus=$(( choice - 1 ))
 		for core in /sys/devices/system/cpu/cpu[0-9]*/
 		do
@@ -94,7 +94,7 @@ dosetgov() {
 		done
 
 	# If a speed is selected, apply to all CPUs
-	elif [ "${choice}" -gt ${govmax} ]; then
+	elif [ "${choice}" -gt "${govmax}" ]; then
 		choiceminus=$(( choice - 1 ))
 		for core in /sys/devices/system/cpu/cpu[0-9]*/
 		do
