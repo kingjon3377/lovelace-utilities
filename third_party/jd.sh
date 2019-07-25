@@ -26,13 +26,13 @@ if [ "$1" = "update" ]
 then
 if [ -e $JDDIR/jdupdate.jar ]
 then
-cd $JDDIR
+cd $JDDIR || exit 1
 echo "Start JD-Updater"
 java -Xmx512m -jar jdupdate.jar
 exit
 else
 echo "Cannot start JD-Updater: Download/Start JD-Installer"
-cd $JDDIR
+cd $JDDIR || exit 1
 wget $JDINSTALLER
 java -Xmx512m -jar jdupdate.jar
 exit
@@ -41,7 +41,7 @@ fi
 if [ -e $JDDIR/JDownloader.jar ]
 then
 echo "JD Installation found: Starting JD now"
-cd $JDDIR
+cd $JDDIR || exit 1
 #java -Xmx512m -jar JDownloader.jar --add-links $1 $2 $3 $4 $5 $6 $7 $8 $9
 java -Xmx512m -jar JDownloader.jar
 exit
@@ -50,12 +50,12 @@ echo "JD Installation found: No valid JDownloader.jar exist!"
 fi
 if [ -e $JDDIR/jdupdate.jar ]
 then
-cd $JDDIR
+cd $JDDIR || exit 1
 echo "Start JD-Updater"
 java -Xmx512m -jar jdupdate.jar
 else
 echo "Cannot start JD-Updater: Download/Start JD-Installer"
-cd $JDDIR
+cd $JDDIR || exit 1
 wget $JDINSTALLER
 java -Xmx512m -jar jdupdate.jar
 exit
@@ -63,7 +63,7 @@ fi
 else
 echo "Download/Start JD-Installer"
 mkdir $JDDIR
-cd $JDDIR
+cd $JDDIR || exit 1
 wget $JDINSTALLER
 java -Xmx512m -jar jdupdate.jar
 exit
