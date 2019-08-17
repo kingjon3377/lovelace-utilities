@@ -107,7 +107,8 @@ backup_simplenote() {
 		LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
 		SIMPLENOTE_USERNAME="invalid%40example.com"
 	fi
-	${LOVELACE_OPEN} "https://app.simplenote.com/export/download?key=${SIMPLENOTE_USERNAME:-invalid%40example.com}"
+#	${LOVELACE_OPEN} "https://app.simplenote.com/export/download?key=${SIMPLENOTE_USERNAME:-invalid%40example.com}"
+	${LOVELACE_OPEN} "https://app.simplenote.com/"
 }
 backup_mint() {
 	lovelace_utilities_source_config_bash
