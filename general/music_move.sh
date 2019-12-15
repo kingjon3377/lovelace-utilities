@@ -14,7 +14,7 @@ music_move() {
 	lovelace_utilities_source_config_bash
 	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
 		MUSIC_COLLECTION=${MUSIC_COLLECTION:-${HOME}/music}
-		MUSIC_ROOT_DIRS=${MUSIC_ROOT_DIRS:-( choirs itunes sorted )}
+		MUSIC_ROOT_DIRS=${MUSIC_ROOT_DIRS:-( sorted )}
 		MUSIC_FAVORITES_DIRS=${MUSIC_FAVORITES_DIRS:-( favorites xmas easter )}
 	fi
 	if [ $# -ne 2 ]; then

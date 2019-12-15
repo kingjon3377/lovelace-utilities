@@ -9,7 +9,7 @@ fi
 lovelace_utilities_source_config_bash
 if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
 	MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
-	MUSIC_ROOT_DIRS=( choirs itunes sorted )
+	MUSIC_ROOT_DIRS=( sorted )
 fi
 setup() {
 	find "${MUSIC_ROOT_DIRS[@]/#/${MUSIC_COLLECTION}/}" -type d | while read -r a; do
