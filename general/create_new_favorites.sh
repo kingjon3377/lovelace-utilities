@@ -48,6 +48,14 @@ create_new_favorites() {
 				echo "Couldn't enter subdirectory ${collection}; continuing ..." 1>&2
 				continue
 			fi
+			if test -f "${file}"; then
+				if ! popd > /dev/null; then
+					echo "Failed to leave ${collection} subdirectory. Aborting!" 1>&2
+					return 4
+				fi
+				echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
+				continue
+			fi
 			response=$(grabchars -cyn -n1 -b -L -f -t10 -dn \
 				-q"Include ${file} in '${collection}'? ")
 			echo
