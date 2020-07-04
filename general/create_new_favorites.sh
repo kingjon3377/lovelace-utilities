@@ -66,7 +66,7 @@ create_new_favorites() {
 				:
 			else
 				echo "grabchars isn't working anymore!" 1>&2
-				break
+				return 5
 			fi
 			if ! popd > /dev/null; then
 				echo "Failed to leave ${collection} subdirectory. Aborting!" 1>&2
@@ -82,7 +82,7 @@ create_new_favorites() {
 			:
 		else
 			echo "grabchars isn't working anymore!" 1>&2
-			break
+			return 5
 		fi
 	done
 	rm "${PIPE}"
