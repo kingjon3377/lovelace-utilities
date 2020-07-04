@@ -34,7 +34,8 @@ create_new_favorites() {
 	while read -r -u 3 file; do
 		local missingfavorites=()
 		for collection in "${MUSIC_FAVORITES_DIRS[@]}";do
-			if ! grep -q -x -F "${MUSIC_COLLECTION}/${file}" "checked-${collection}.txt"; then
+			if ! grep -q -x -F "${MUSIC_COLLECTION}/${file}" "checked-${collection}.txt" && \
+					! test -f "${MUSIC_COLLECTION}/${collection}/${file}"; then
 				missingfavorites+=("${collection}")
 			fi
 		done
