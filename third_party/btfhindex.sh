@@ -77,7 +77,7 @@ chapter_found() {
 			fi
 		fi
 		if [ -n "${title}" ]; then
-			echo "<title>${title}</title>"
+			echo "<title>${title//_/ }</title>"
 		fi
 		if [ -n "${author}" ]; then
 			echo '<meta name="Author" content="'"${author}"'"/>'
@@ -85,7 +85,7 @@ chapter_found() {
 		echo "</head>"
 		echo "<body>"
 		if [ -n "${title}" ]; then
-			echo "<h1>${title}</h1>"
+			echo "<h1>${title//_/ }</h1>"
 		fi
 		echo "<h2>Table of Contents</h2>"
 		echo "<p>"
