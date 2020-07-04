@@ -125,6 +125,7 @@ generate_html() {
 			((ten=chapter_num / 10 % 10))
 			number=${tens[$ten]}${aughts[${aught}]}
 		fi
+		handle_chapter "$(to_roman ${chapter_num})"
 		handle_chapter Part_${chapter_num}
 		handle_chapter "Part_${number}"
 		handle_chapter "Part_$(to_roman ${chapter_num})"
