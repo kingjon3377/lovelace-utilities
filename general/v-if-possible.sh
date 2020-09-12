@@ -9,7 +9,7 @@ v_if_possible() {
 	fi
 	filename="$1"
 	if [ -e "${filename}".gz ] || [ -e "${filename}".bz2 ] || \
-			[ -e "${filename}".xz ] || [ -e "${filename}".rz ] \
+			[ -e "${filename}".lz ] || [ -e "${filename}".rz ] \
 			|| [ -e "${filename}".lrz ]; then
 		echo Refusing to overwrite existing archives, skipping ... 1>&2
 		return 0
@@ -17,16 +17,14 @@ v_if_possible() {
 #	base="$(basename "${filename}")"
 #	if [ "${base}" != "$(basename "${filename}" .gz)" ] || \
 #			[ "${base}" != "$(basename "${filename}" .bz2)" ] || \
-#			[ "${base}" != "$(basename "${filename}" .xz)" ] || \
-#			[ "${base}" != "$(basename "${filename}" .lzma)" ] || \
+#			[ "${base}" != "$(basename "${filename}" .lz)" ] || \
 #			[ "${base}" != "$(basename "${filename}" .rz)" ] || \
 #			[ "${base}" != "$(basename "${filename}" .tgz)" ] || \
 #			[ "${base}" != "$(basename "${filename}" .tbz2)" ] ||\
-#			[ "${base}" != "$(basename "${filename}" .txz)" ] ||\
 #			[ "${base}" != "$(basename "${filename}" .tlz)" ] ||\
 #			[ "${base}" != "$(basename "${filename}" .lrz)" ];then
 	case "${filename}" in
-	*.gz | *.bz2 | *.xz | *.lzma | *.rz | *.tgz | *.tbz2 | *.txz | *.tlz | *.lrz)
+	*.gz | *.bz2 | *.lz | *.rz | *.tgz | *.tbz2 | *.tlz | *.lrz)
 		echo Looks like one of my output formats, skipping ... 1>&2
 		return 0 ;;
 	esac
@@ -42,9 +40,9 @@ v_if_possible() {
 	bzip2 -f -k -v -v "${filename}"
 	bzip_size="$(stat -c "%s" "${filename}".bz2)"
 	rm "${filename}".bz2
-	xz -v -9 -f -k -S .xz "${filename}"
-	xz_size="$(stat -c "%s" "${filename}".xz)"
-	rm "${filename}".xz
+	lzip -v -9 -k "${filename}"
+	lz_size="$(stat -c "%s" "${filename}".lz)"
+	rm "${filename}".lz
 	if [ $SKIP_RZIP = true ]; then
 		rzip_size="$(( raw_size * raw_size))"
 	else
@@ -56,32 +54,32 @@ v_if_possible() {
 	lrzip_size="$(stat -c "%s" "${filename}".lrz)"
 	rm "${filename}".lrz
 	if [ "$raw_size" -le "$gzip_size" ] && [ "$raw_size" -le "$bzip_size" ] && \
-			[ "$raw_size" -le "$xz_size" ] && [ "$raw_size" -le "$rzip_size" ] && \
+			[ "$raw_size" -le "$lz_size" ] && [ "$raw_size" -le "$rzip_size" ] && \
 			[ "$raw_size" -le "$lrzip_size" ]
 	then
 		echo "Leaving ${filename} be ..."
 	elif [ "$gzip_size" -le "$raw_size" ] && [ "$gzip_size" -le "$bzip_size" ] && \
-			[ "$gzip_size" -le "$xz_size" ] && [ "$gzip_size" -le "$rzip_size" ] && \
+			[ "$gzip_size" -le "$lz_size" ] && [ "$gzip_size" -le "$rzip_size" ] && \
 			[ "$gzip_size" -le "$lrzip_size" ]; then
 		echo "gzipping ${filename} ..."
 		gzip -9 -v "${filename}"
 	elif [ "$bzip_size" -le "$raw_size" ] && [ "$bzip_size" -le "$gzip_size" ] && \
-			[ "$bzip_size" -le "$xz_size" ] && [ "$bzip_size" -le "$rzip_size" ] && \
+			[ "$bzip_size" -le "$lz_size" ] && [ "$bzip_size" -le "$rzip_size" ] && \
 			[ "$bzip_size" -le "$lrzip_size" ]; then
 		echo "bzipping ${filename} ..."
 		bzip2 -f -v -v "${filename}"
-	elif [ "$xz_size" -le "$raw_size" ] && [ "$xz_size" -le "$gzip_size" ] && \
-			[ "$xz_size" -le "$bzip_size" ] && [ "$xz_size" -le "$rzip_size" ] && \
-			[ "$xz_size" -le "$lrzip_size" ]; then
-		echo "xzipping ${filename} ..."
-		xz -v -9 -f -S .xz "${filename}"
+	elif [ "$lz_size" -le "$raw_size" ] && [ "$lz_size" -le "$gzip_size" ] && \
+			[ "$lz_size" -le "$bzip_size" ] && [ "$lz_size" -le "$rzip_size" ] && \
+			[ "$lz_size" -le "$lrzip_size" ]; then
+		echo "lzipping ${filename} ..."
+		lzip -v -9 "${filename}"
 	elif [ "$rzip_size" -le "$raw_size" ] && [ "$rzip_size" -le "$gzip_size" ] && \
-			[ "$rzip_size" -le "$bzip_size" ] && [ "$rzip_size" -le "$xz_size" ] && \
+			[ "$rzip_size" -le "$bzip_size" ] && [ "$rzip_size" -le "$lz_size" ] && \
 			[ "$rzip_size" -le "$lrzip_size" ]; then
 		echo "rzipping ${filename} ..."
 		rzip -9 -P "${filename}"
 	elif [ "$lrzip_size" -le "$raw_size" ] && [ "$lrzip_size" -le "$gzip_size" ] && \
-			[ "$lrzip_size" -le "$bzip_size" ] && [ "$lrzip_size" -le "$xz_size" ] && \
+			[ "$lrzip_size" -le "$bzip_size" ] && [ "$lrzip_size" -le "$lz_size" ] && \
 			[ "$lrzip_size" -le "$rzip_size" ]; then
 		echo "lrzipping ${filename} ..."
 		lrzip -z -D -N 0 "${filename}"

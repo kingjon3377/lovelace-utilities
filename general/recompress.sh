@@ -51,9 +51,15 @@ recompress() {
 		*.[Tt][Bb][Zz]2)
 			base="${filename%.[Tt][Bb][Zz]2}.tar"
 			decompress=bunzip2 ;;
-		*.[Tt][XxLl][Zz])
-			base="${filename%.[Tt][XxLl][Zz]}.tar"
+		*.[Tt][Xx][Zz])
+			base="${filename%.[Tt][Xx][Zz]}.tar"
 			decompress=unxz ;;
+		*.[Ll][Zz])
+			base="${filename%.[Ll][Zz]}"
+			decompress="lzip -d" ;;
+		*.[Tt][Ll][Zz])
+			base="${filename%.[Tt][Ll][Zz]}.tar"
+			decompress="lzip -d" ;;
 		*)
 			echo "${0}: I don't know how to handle ${filename}" 
 			return 0 ;;

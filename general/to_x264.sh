@@ -34,9 +34,15 @@ to_x264_each() {
 	*[Aa][Vv][Ii].xz)
 		base="${filename%.xz}"
 		decompress=unxz ;;
+	*[Aa][Vv][Ii].lz)
+		base="${filename%.lz}"
+		decompress="lzip -d" ;;
 	*[Aa][Vv][Ii].XZ)
 		base="${filename%.XZ}"
 		decompress=unxz ;;
+	*[Aa][Vv][Ii].LZ)
+		base="${filename%.LZ}"
+		decompress="lzip -d" ;;
 	*)
 		echo "${0}": I don\'t know how to handle "${filename}" 
 		return 0 ;;

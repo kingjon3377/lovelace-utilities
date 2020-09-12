@@ -12,13 +12,13 @@ z_if_possible() {
 		return 0
 	fi
 	if [ -e "${filename}".gz ] || [ -e "${filename}".bz2 ] || \
-			[ -e "${filename}".xz ] || [ -e "${filename}".rz ] \
+			[ -e "${filename}".lz ] || [ -e "${filename}".rz ] \
 			|| [ -e "${filename}".lrz ]; then
 		echo Refusing to overwrite existing archives, skipping ... 1>&2
 		return 0
 	fi
 	case "${filename}" in
-	*.gz | *.bz2 | *.xz | *.lzma | *.rz | *.tgz | *.tbz2 | *.txz | *.tlz | *.lrz)
+	*.gz | *.bz2 | *.lz | *.lzma | *.rz | *.tgz | *.tbz2 | *.tlz | *.lrz)
 		echo Looks like one of my output formats, skipping ... 1>&2
 		return 0 ;;
 	esac
@@ -33,9 +33,9 @@ z_if_possible() {
 	bzip2 -f -k "${filename}"
 	bzip_size="$(stat -c "%s" "${filename}".bz2)"
 	rm "${filename}".bz2
-	xz -9 -f -k -S .xz "${filename}"
-	xz_size="$(stat -c "%s" "${filename}".xz)"
-	rm "${filename}".xz
+	lzip -9 -k "${filename}"
+	lz_size="$(stat -c "%s" "${filename}".lz)"
+	rm "${filename}".lz
 	if [ $SKIP_RZIP = true ]; then
 		rzip_size="$(( raw_size * raw_size ))"
 	else
@@ -47,32 +47,32 @@ z_if_possible() {
 	lrzip_size="$(stat -c "%s" "${filename}".lrz)"
 	rm "${filename}".lrz
 	if [ "$raw_size" -le "$gzip_size" ] && [ "$raw_size" -le "$bzip_size" ] && \
-			[ "$raw_size" -le "$xz_size" ] && [ "$raw_size" -le "$rzip_size" ] && \
+			[ "$raw_size" -le "$lz_size" ] && [ "$raw_size" -le "$rzip_size" ] && \
 			[ "$raw_size" -le "$lrzip_size" ]
 	then
 		echo "Leaving ${filename} be ..."
 	elif [ "$gzip_size" -le "$raw_size" ] && [ "$gzip_size" -le "$bzip_size" ] && \
-			[ "$gzip_size" -le "$xz_size" ] && [ "$gzip_size" -le "$rzip_size" ] && \
+			[ "$gzip_size" -le "$lz_size" ] && [ "$gzip_size" -le "$rzip_size" ] && \
 			[ "$gzip_size" -le "$lrzip_size" ]; then
 		echo "gzipping ${filename} ..."
 		gzip -9 "${filename}"
 	elif [ "$bzip_size" -le "$raw_size" ] && [ "$bzip_size" -le "$gzip_size" ] && \
-			[ "$bzip_size" -le "$xz_size" ] && [ "$bzip_size" -le "$rzip_size" ] && \
+			[ "$bzip_size" -le "$lz_size" ] && [ "$bzip_size" -le "$rzip_size" ] && \
 			[ "$bzip_size" -le "$lrzip_size" ]; then
 		echo "bzipping ${filename} ..."
 		bzip2 -f "${filename}"
-	elif [ "$xz_size" -le "$raw_size" ] && [ "$xz_size" -le "$gzip_size" ] && \
-			[ "$xz_size" -le "$bzip_size" ] && [ "$xz_size" -le "$rzip_size" ] && \
-			[ "$xz_size" -le "$lrzip_size" ]; then
-		echo "xzipping ${filename} ..."
-		xz -9 -f -S .xz "${filename}"
+	elif [ "$lz_size" -le "$raw_size" ] && [ "$lz_size" -le "$gzip_size" ] && \
+			[ "$lz_size" -le "$bzip_size" ] && [ "$lz_size" -le "$rzip_size" ] && \
+			[ "$lz_size" -le "$lrzip_size" ]; then
+		echo "lzipping ${filename} ..."
+		lzip -9 "${filename}"
 	elif [ "$rzip_size" -le "$raw_size" ] && [ "$rzip_size" -le "$gzip_size" ] && \
-			[ "$rzip_size" -le "$bzip_size" ] && [ "$rzip_size" -le "$xz_size" ] && \
+			[ "$rzip_size" -le "$bzip_size" ] && [ "$rzip_size" -le "$lz_size" ] && \
 			[ "$rzip_size" -le "$lrzip_size" ]; then
 		echo "rzipping ${filename} ..."
 		rzip -9 "${filename}"
 	elif [ "$lrzip_size" -le "$raw_size" ] && [ "$lrzip_size" -le "$gzip_size" ] && \
-			[ "$lrzip_size" -le "$bzip_size" ] && [ "$lrzip_size" -le "$xz_size" ] && \
+			[ "$lrzip_size" -le "$bzip_size" ] && [ "$lrzip_size" -le "$lz_size" ] && \
 			[ "$lrzip_size" -le "$rzip_size" ]; then
 		echo "lrzipping ${filename} ..."
 		lrzip -z -q -D -N 0 "${filename}"
