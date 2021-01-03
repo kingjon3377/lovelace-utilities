@@ -21,7 +21,7 @@ keep_image() {
 				--width=${width} --height=${height} --title="Keep Image?"
 			test $? -eq 1 && rm -i "${file}"
 		else
-			keep=$(fbi "${file}")
+			keep=$(fbi --autodown "${file}")
 			if test "${keep}" = "${file}"; then
 				continue;
 			else
