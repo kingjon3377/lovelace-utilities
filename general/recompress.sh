@@ -14,6 +14,9 @@ else
 fi
 recompress() {
 	filename="${1}"
+	if ! test -f "${filename}"; then
+		return 0;
+	fi
 	size="$(stat -c "%s" "${filename}")"
 	free_space=$(df -P -B 1 "${filename}" | tail -n 1 | awk 'NR=2 { print $4 }')
 	doubled=$((size * 3))
