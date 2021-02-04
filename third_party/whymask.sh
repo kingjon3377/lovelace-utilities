@@ -2,7 +2,7 @@
 whymask() {
     find /usr/portage/profiles/ -name '*.mask' -exec \
         awk -vRS= "/${*/\//.}/ {
-                print \" \" FILENAME \":\", \"\n\" \"\n\" \$0 \"\n\"
+                print \" \" FILENAME \":\", \"\\n\" \"\\n\" \$0 \"\\n\"
         }" {} + | less
 }
 # We use more reliable sourcing-detection because string replacement is a
