@@ -134,11 +134,21 @@ backup_google_contacts() {
 	fi
 	${LOVELACE_OPEN} 'https://contacts.google.com/'
 }
+backup_google() {
+	lovelace_utilities_source_config_bash
+	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
+		WGET="${WGET:-wget --progress=dot}"
+		LOVELACE_OPEN=${LOVELACE_OPEN:-xdg-open}
+	fi
+	echo "Remember to deselect Mail" 1>&2
+	${LOVELACE_OPEN} 'https://takeout.google.com/settings/takeout'
+}
 backup_web_services() {
 	backup_goodreads && backup_librarything && backup_delicious && \
 		backup_diigo && backup_facebook && backup_tracker && \
 		backup_mint && backup_simplenote && backup_wordpress && \
-		backup_linkedin && backup_google_contacts && backup_gmail
+		backup_linkedin && backup_google_contacts && backup_google && \
+		backup_gmail
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as
 # $BASH_SOURCE, but is portable to other sh implementations
