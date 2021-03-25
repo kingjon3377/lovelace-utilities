@@ -29,8 +29,10 @@ keep_image() {
 			if test "${keep}" = "${file}"; then
 				continue;
 			else
-				resp=$(grabchars -q"Keep ${file}? "  -b -cyn -dy)
-				if test "${resp}" = n; then
+				resp=$(grabchars -q"Keep ${file}? "  -b -cynq -dy)
+				if test "${resp}" = q; then
+					break;
+				elif test "${resp}" = n; then
 					rm -i "${file}"
 				fi
 			fi
