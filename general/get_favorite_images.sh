@@ -23,7 +23,7 @@ get_favorite_images() {
 	exec 3<"${PIPE}"
 	touch "${RECORD}"
 	while read -r -u 3 file; do
-		grep -q -x -F "${SOURCE_DIRECTORY}/${file}" "${RECORD}" && continue
+		grep -q -x -F "$(realpath "${SOURCE_DIRECTORY}/${file}")" "${RECORD}" && continue
 		keep_image "${file}"
 		test -f "${file}" || continue
 		if ! pushd "${NEW_DIR}" > /dev/null; then
@@ -73,7 +73,7 @@ get_favorite_images() {
 			echo "Failed to return to SOURCE_DIRECTORY" 1>&2
 			return 5
 		fi
-		echo "${SOURCE_DIRECTORY}/${file}" >> "${RECORD}"
+		realpath "${SOURCE_DIRECTORY}/${file}" >> "${RECORD}"
 		if test "$(grabchars -q"Keep going? " -b -cyn -dy -t3)" != y;then
 			break
 		fi
