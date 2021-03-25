@@ -65,7 +65,7 @@ get_favorite_images() {
 				elif test "${resp}" = q;then
 					break
 				elif test "${resp}" = n;then
-					continue
+					:
 				else
 					echo "grabchars isn't working!" 1>&2
 					break
