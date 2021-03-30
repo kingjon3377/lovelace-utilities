@@ -21,7 +21,7 @@ speex_concat() {
 	${SPC_IONICE_CMD} ffmpeg -i tmp_$$_MP3WRAP.mp3 -acodec copy all_$$.mp3 && \
 		rm tmp_$$_MP3WRAP.mp3
 	${SPC_IONICE_CMD} id3cp "${1}" all_$$.mp3
-	${SPC_IONICE_CMD} sox all_$$.mp3 -t wav -r 8000 - | ${SPC_IONICE_CMD} speexenc - "${final}"
+	${SPC_IONICE_CMD} ffmpeg -i all_$$.mp3 -acodec speex "${final}"
 	retval=$?
 	rm all_$$.mp3
 	return ${retval}
