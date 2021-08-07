@@ -51,7 +51,7 @@ to_x264_each() {
 	pathless_base="${base##*/}"
 	final="${pathless_base%.[Aa][Vv][Ii]}.mp4"
 	{ cp "${filename}" .&&${decompress} "${pathless}" && \
-		ffmpeg -i "${pathless_base}" -vcodec libx264 -f mp4 -acodec libfaac "${final}" && \
+		ffmpeg -hide_banner -i "${pathless_base}" -vcodec libx264 -f mp4 -acodec libfaac "${final}" && \
 		echo "Press enter to test converted video ..." && \
 		read -r && \
 		play_possibly_remove.sh "${final}"; } || return $?

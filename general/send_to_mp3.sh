@@ -20,8 +20,8 @@ send_to_mp3() {
 		*) echo "Unhandled extension on ${file}" ; continue ;;
 		esac
 		test -f "${MP3_PLAYER}/${base}.mp3" && continue
-#		ffmpeg -i "${file}" -vn -acodec mp2 "${MP3_PLAYER}/mp3/"${base}.mp3"
-		ffmpeg -i "${file}" -vn "${MP3_PLAYER}/${base}.mp3"
+#		ffmpeg -hide_banner -i "${file}" -vn -acodec mp2 "${MP3_PLAYER}/mp3/"${base}.mp3"
+		ffmpeg -hide_banner -i "${file}" -vn "${MP3_PLAYER}/${base}.mp3"
 	done
 }
 # Testing $_ (saved at the top of the script) against $0 isn't as reliable as

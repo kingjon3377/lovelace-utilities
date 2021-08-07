@@ -18,10 +18,10 @@ speex_concat() {
 	final="${1}"
 	shift
 	${SPC_IONICE_CMD} mp3wrap tmp_$$.mp3 "$@"
-	${SPC_IONICE_CMD} ffmpeg -i tmp_$$_MP3WRAP.mp3 -acodec copy all_$$.mp3 && \
+	${SPC_IONICE_CMD} ffmpeg -hide_banner -i tmp_$$_MP3WRAP.mp3 -acodec copy all_$$.mp3 && \
 		rm tmp_$$_MP3WRAP.mp3
 	${SPC_IONICE_CMD} id3cp "${1}" all_$$.mp3
-	${SPC_IONICE_CMD} ffmpeg -i all_$$.mp3 -acodec speex "${final}"
+	${SPC_IONICE_CMD} ffmpeg -hide_banner -i all_$$.mp3 -acodec speex "${final}"
 	retval=$?
 	rm all_$$.mp3
 	return ${retval}

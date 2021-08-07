@@ -39,7 +39,7 @@ convert_video() {
 			echo "${DEST} already exists, skipping ..."
 			return
 		fi
-		ffmpeg -i "${orig}" -vn -acodec copy "${DEST}" || return $?
+		ffmpeg -hide_banner -i "${orig}" -vn -acodec copy "${DEST}" || return $?
 		echo "About to play the OGG; type \"n\" at the next prompt if you want to keep it."
 		play_possibly_remove "${DEST}"
 		if test -e "${DEST}"; then
