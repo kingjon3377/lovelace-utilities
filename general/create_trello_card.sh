@@ -12,7 +12,7 @@
 # *too* widely, so you'll have to get your own API key too; use that same function.
 create_trello_token() {
 	lovelace_utilities_source_config_bash
-	if "${TRELLO_API_KEY:-invalidkey}" = "invalidkey"; then
+	if test "${TRELLO_API_KEY:-invalidkey}" = "invalidkey"; then
 		${LOVELACE_OPEN:-xdg-open} "https://trello.com/app-key"
 	else
 		${LOVELACE_OPEN:-xdg-open} \
