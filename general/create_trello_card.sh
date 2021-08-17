@@ -49,7 +49,7 @@ translate_trello_board() {
 	secrets="key=${TRELLO_API_KEY:-invalidkey}&token=${TRELLO_API_TOKEN:-invalidtoken}"
 	board_json="$(curl -s -X GET "https://api.trello.com/1/members/me/boards?${secrets}" 2>/dev/null)"
 	retval=$?
-	test ${retval} -eq 0 || return ${retval}
+	test "${retval}" -eq 0 || return "${retval}"
 	matcher() {
 		jq -r '.[] | {name,shortLink,id} | select('"${1}"') | .id'
 	}
@@ -82,7 +82,7 @@ translate_trello_list() {
 	secrets="key=${TRELLO_API_KEY:-invalidkey}&token=${TRELLO_API_TOKEN:-invalidtoken}"
 	board_json="$(curl -s -X GET "https://api.trello.com/1/boards/${1}/lists?${secrets}" 2>/dev/null)"
 	retval=$?
-	test ${retval} -eq 0 || return ${retval}
+	test "${retval}" -eq 0 || return "${retval}"
 	matcher() {
 		jq -r '.[] | {name,id} | select('"${1}"') | .id'
 	}
@@ -124,10 +124,10 @@ submit_trello_story() {
 	fi
 	board="$(translate_trello_board "${board}")"
 	retval=$?
-	test ${retval} -eq 0 || return ${retval}
+	test "${retval}" -eq 0 || return "${retval}"
 	list="$(translate_trello_list "${board}" "${list}")"
 	retval=$?
-	test ${retval} -eq 0 || return ${retval}
+	test "${retval}" -eq 0 || return "${retval}"
 	local story_title story_desc=${4} story_url=${5}
 	story_title="$(echo "${3}" | minimal_sanitize)"
 	if test "${story_title:-null}" = "null"; then

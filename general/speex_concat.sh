@@ -24,7 +24,7 @@ speex_concat() {
 	${SPC_IONICE_CMD} ffmpeg -hide_banner -i all_$$.mp3 -acodec speex "${final}"
 	retval=$?
 	rm all_$$.mp3
-	return ${retval}
+	return "${retval}"
 }
 if [ "${0}" = "${BASH_SOURCE[0]}" ]; then
 	export SPXC_EXECUTED=true

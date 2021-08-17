@@ -37,13 +37,13 @@ get_favorite_images() {
 		if test -n "${DISPLAY}"; then
 			width=$(identify -format "%w" "${file}"); width=$((width + 40))
 			height=$(identify -format "%h" "${file}"); height=$((height + 60))
-			test ${width} -gt 800&&width=800
-			test ${height} -gt 600&&height=600
+			test "${width}" -gt 800&&width=800
+			test "${height}" -gt 600&&height=600
 			{
 				echo "<h2>Is ${file} a favorite?</h2><img src=\"data:"
 				mimetype -b "${file}"&&echo -n ';base64,'&&base64 "${file}"&&echo '">'
 			} | zenity --text-info --html --filename=/dev/stdin \
-				--width=${width} --height=${height} \
+				--width="${width}" --height="${height}" \
 				--title="Favorite?" --ok-label="Favorite" --cancel-label="Not Favorite"
 			if test $? -eq 0; then
 				mkdir -p "$(dirname "${file}")"

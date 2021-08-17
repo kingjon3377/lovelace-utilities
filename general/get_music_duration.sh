@@ -5,6 +5,6 @@ get_music_duration() {
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	for file in "$@";do
-		get_music_duration "$file"
+		get_music_duration "${file}"
 	done
 fi

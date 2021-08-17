@@ -43,9 +43,9 @@ play_five_favorites() {
 	else
 		XMAS=${XMAS:-false}
 	fi
-	if [ ${XMAS} = true ]; then
+	if [ "${XMAS}" = true ]; then
 		FAVORITES=${MUSIC_COLLECTION_XMAS}
-	elif [ ${EASTER:-false} = true ]; then
+	elif [ "${EASTER:-false}" = true ]; then
 		FAVORITES=${MUSIC_COLLECTION_EASTER}
 	else
 		FAVORITES=${MUSIC_COLLECTION_FAVORITES}
@@ -54,7 +54,7 @@ play_five_favorites() {
 	# We add a sort command to force one list ... I think that because of
 	# buffering, some files were getting played twice
 	file_list=$(find "${FAVORITES}" -type f | sort | shuf -n "${REPS:-5}")
-	if [ ${REMOVE:-true} = true ]; then
+	if [ "${REMOVE:-true}" = true ]; then
 		for a in ${file_list}; do
 			${PLAYER_COMMAND} "${a}" && rm -i "${a}"
 		done

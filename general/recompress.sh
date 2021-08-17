@@ -25,7 +25,7 @@ recompress() {
 		return 0
 	fi
 	stat=$(stat "${filename}" | grep Links: | sed 's/^.*Links: //')
-	if [ "$stat" -ne 1 ]; then
+	if [ "${stat}" -ne 1 ]; then
 		echo "${0}: ${filename} has more than one link, skipping ..."
 		return 0
 	else

@@ -2,10 +2,10 @@
 bruteforce() {
 	case "$1" in
 		*rar) while read -r pass; do
-				unrar t "$1" -p"$pass" && unrar x "$1" -p"${pass}" && echo "Working password: \"${pass}\"" && return 0
+				unrar t "$1" -p"${pass}" && unrar x "$1" -p"${pass}" && echo "Working password: \"${pass}\"" && return 0
 			done < "$2"; return 2;;
 		*zip) while read -r pass; do
-				unzip -t -P "$pass" "$1" && unzip -P "$pass" "$1" && echo "Working password: \"${pass}\"" && return 0
+				unzip -t -P "${pass}" "$1" && unzip -P "${pass}" "$1" && echo "Working password: \"${pass}\"" && return 0
 			done < "$2"; return 2;;
 		*) echo "Unsupported archive format"
 			return 1 ;;

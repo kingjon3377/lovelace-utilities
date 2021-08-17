@@ -20,7 +20,7 @@ submit_to_tracker() {
 	local PROJECT=${PROJECT:-${1}}
 	PROJECT=$(project_name_to_id "${PROJECT}")
 	proj_ret=$?
-	if test ${proj_ret} -ne 0; then return ${proj_ret};fi
+	if test "${proj_ret}" -ne 0; then return "${proj_ret}";fi
 	local STORY_TYPE=${STORY_TYPE:-${2}}
 	case "${STORY_TYPE}" in
 		bug|feature|chore) : ;;
@@ -103,7 +103,7 @@ submit_tracker_release() {
 	fi
 	PROJECT=$(project_name_to_id "${PROJECT}")
 	proj_ret=$?
-	if test ${proj_ret} -ne 0; then return ${proj_ret};fi
+	if test "${proj_ret}" -ne 0; then return "${proj_ret}";fi
 	local TAGS="${TAGS:-${2}}"
 	local STORY_NAME="${STORY_NAME:-${3}}"
 	local DUE="${DUE:-${4}}"

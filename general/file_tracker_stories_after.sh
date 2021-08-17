@@ -25,7 +25,7 @@ file_stories_after() {
 	local PROJECT=${1}
 	PROJECT=$(project_name_to_id "${PROJECT}")
 	proj_ret=$?
-	test ${proj_ret} -eq 0 || return ${proj_ret}
+	test "${proj_ret}" -eq 0 || return "${proj_ret}"
 	old_story=${2}
 	ran_once=false
 
@@ -38,13 +38,13 @@ file_stories_after() {
 			-d '{"after_id": '"${old_story}"'}' \
 			"https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories/${story}"
 		curl_ret=$?
-		if test ${curl_ret} -eq 0; then
+		if test "${curl_ret}" -eq 0; then
 			old_story=${story}
 			sleep 1
 			ran_once=true
 		else
 			echo "Failed on ${story}" 1>&2
-			return ${curl_ret}
+			return "${curl_ret}"
 		fi
     done
     test "${ran_once}" = true && echo

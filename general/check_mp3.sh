@@ -25,7 +25,7 @@ check_mp3() {
 				break
 			fi
 		done
-		if test ${any} = false; then
+		if test "${any}" = false; then
 			echo "${file} no longer present in favorites"
 		fi
 	done

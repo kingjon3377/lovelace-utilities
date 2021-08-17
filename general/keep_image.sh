@@ -8,8 +8,8 @@ keep_image() {
 			height=$(identify -format "%h" "${file}")
 			width=$((width + 40))
 			height=$((height + 60))
-			test ${width} -gt 800&&width=800
-			test ${height} -gt 600&&height=600
+			test "${width}" -gt 800&&width=800
+			test "${height}" -gt 600&&height=600
 			{ 
 				echo "<h2>Keep ${file}?</h2><img src=\"data:"
 				mimetype -b "${file}"
@@ -18,7 +18,7 @@ keep_image() {
 				echo "\">"
 			} | zenity --text-info --html --filename=/dev/stdin \
 				--ok-label="Keep" --cancel-label="Remove" \
-				--width=${width} --height=${height} --title="Keep Image?"
+				--width="${width}" --height="${height}" --title="Keep Image?"
 			test $? -eq 1 && rm -i "${file}"
 		else
 			if ! test -f "${file}"; then
