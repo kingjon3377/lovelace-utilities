@@ -3,7 +3,7 @@
 chroot_wrapper_usage() {
 	echo "Usage: ${0#*/} [-d DIR] [CHROOT_ARGS]"
 	echo "where DIR is an optional path to chroot to"
-	echo "($CWD is assumed as a default) and CHROOT_ARGS"
+	echo "(\$CWD is assumed as a default) and CHROOT_ARGS"
 	echo "are the arguments to pass to chroot (like the"
 	echo "command to run in the chroot; by default it"
 	echo "passes /bin/bash -l)"
