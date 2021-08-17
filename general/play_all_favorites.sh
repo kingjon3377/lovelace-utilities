@@ -15,6 +15,7 @@ play_all_favorites() {
 	ORIG_PWD="${PWD}"
 	cd "${MUSIC_COLLECTION_BASE}" || return
 	while [ $# -gt 0 ];do
+		# shellcheck disable=SC2249
 		case "${1}" in
 			noremove | --noremove | no-remove | --no-remove) REMOVE=false ;;
 			xmas | --xmas | christmas | --christmas) XMAS=true EASTER=false ;;

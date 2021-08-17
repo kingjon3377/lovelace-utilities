@@ -24,6 +24,7 @@ get_favorite_images() {
 	touch "${RECORD}"
 	while read -r -u 3 file; do
 		grep -q -x -F "$(realpath "${SOURCE_DIRECTORY}/${file}")" "${RECORD}" && continue
+		# shellcheck disable=2249
 		case "${file}" in
 		*wks|*txt|*ods) continue ;;
 		esac
