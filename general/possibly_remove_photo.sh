@@ -1,5 +1,4 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
 # TODO: What if DISPLAY unset?
 possibly_remove_photo() {
 	for a in "$@"; do
@@ -8,9 +7,6 @@ possibly_remove_photo() {
 		wait
 	done
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	possibly_remove_photo "$@"
 fi

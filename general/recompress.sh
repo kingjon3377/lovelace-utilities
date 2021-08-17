@@ -1,5 +1,5 @@
-#!/bin/sh
-rc_called_path=$_
+#!/bin/bash
+rc_called_path="${BASH_SOURCE[0]}"
 if [ -f "${rc_called_path%/*}/z-if-possible.sh"  ];then
 # shellcheck source=./z-if-possible.sh
     . "${rc_called_path%/*}/z-if-possible.sh"
@@ -76,9 +76,6 @@ recompress() {
 	fi
 	z_if_possible "${base}"
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${rc_called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	recompress "$@"
 fi

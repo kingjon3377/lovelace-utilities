@@ -1,5 +1,5 @@
-#!/bin/sh
-cv_called_path=$_
+#!/bin/bash
+cv_called_path="${BASH_SOURCE[0]}"
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${cv_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 # shellcheck source=./play_possibly_remove.sh
@@ -48,7 +48,4 @@ convert_video() {
 		fi
 	fi
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-[ "${cv_called_path}" = "$0" ] && convert_video "$@"
-# [ "${BASH_SOURCE[0]}" = "$0" ] && convert_video "$@"
+ [ "${BASH_SOURCE[0]}" = "$0" ] && convert_video "$@"

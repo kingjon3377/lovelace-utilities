@@ -1,5 +1,5 @@
-#!/bin/sh
-vr_called_path=$_
+#!/bin/bash
+vr_called_path="${BASH_SOURCE[0]}"
 # shellcheck source=./v-if-possible.sh
 . "${vr_called_path%/*}/v-if-possible.sh"
 v_recursive() {
@@ -19,9 +19,6 @@ v_recursive() {
 		done
 	fi
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${vr_called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	v_recursive "$@"
 fi

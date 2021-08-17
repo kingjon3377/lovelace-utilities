@@ -1,5 +1,4 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
 z_not_rzip() {
 	filename="$1"
 	if [ -e "$filename".gz ] || [ -e "$filename".bz2 ]; then
@@ -45,9 +44,6 @@ z_not_rzip() {
 		return 1
 	fi
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	z_not_rzip "$@"
 fi

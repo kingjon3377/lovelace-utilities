@@ -1,5 +1,6 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
+# TODO: Rename to compress_video.sh and support VP9 and whatever its successor is (but leave h264 the default,
+# as VP9 encoding is *significantly* slower)
 to_x264_each() {
 	filename="$(realpath "${1}")"
 	filepath="${filename%/*}"
@@ -68,9 +69,6 @@ to_x264() {
 		to_x264_each "${arg}"
 	done
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	to_x264 "$@"
 fi

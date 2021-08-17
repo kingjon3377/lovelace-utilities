@@ -1,5 +1,4 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
 lrunzip_tricky() {
 #	[ "$(basename "${1}" .lrz)" = "$(basename "${1}")" ] && return 1
 	[ "${1%.lrz}" = "${1}" ] && return 1
@@ -11,9 +10,6 @@ lrunzip_tricky() {
 	${LOCAL_LRUNZIP:-${HOME}/lrzip/bin/lrunzip} -D "${1}"
 	return $?
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	lrunzip_tricky "$@"
 fi

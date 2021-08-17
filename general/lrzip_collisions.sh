@@ -1,5 +1,4 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
 lrzip_collisions() {
 #	[ "$(basename "$1" .lrz)" = "$(basename "$1")" ] && return 1
 	[ "${1%.lrz}" = "${1}" ] && return 1
@@ -7,9 +6,6 @@ lrzip_collisions() {
 	[ -e "${1%.lrz}" ] || return 2
 }
 
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	lrzip_collisions "$@"
 fi

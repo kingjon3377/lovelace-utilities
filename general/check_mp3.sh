@@ -1,5 +1,5 @@
-#!/bin/sh
-cm_called_path=$_
+#!/bin/bash
+cm_called_path="${BASH_SOURCE[0]}"
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 check_mp3() {
@@ -43,7 +43,4 @@ check_mp3() {
 		test -f "${MP3_PLAYER}/${target}" || echo "${file} missing from player"
 	done
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-[ "${cm_called_path}" = "$0" ] && check_mp3 "$@"
-#[ "${BASH_SOURCE[0]}" = "$0" ] && check_mp3 "$@"
+[ "${BASH_SOURCE[0]}" = "$0" ] && check_mp3 "$@"

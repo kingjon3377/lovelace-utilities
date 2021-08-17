@@ -1,5 +1,5 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
+# TODO: Remove this script or adapt to Opus; Speex is almost never what one wants anymore
 speex_concat() {
 	if [ $# -lt 2 ]; then
 		echo "Usage: speex_concat final.spx first.mp3 [second.mp3 ...]"
@@ -18,18 +18,15 @@ speex_concat() {
 	final="${1}"
 	shift
 	${SPC_IONICE_CMD} mp3wrap tmp_$$.mp3 "$@"
-	${SPC_IONICE_CMD} ffmpeg -hide_banner -i tmp_$$_MP3WRAP.mp3 -acodec copy all_$$.mp3 && \
-		rm tmp_$$_MP3WRAP.mp3
+	${SPC_IONICE_CMD} ffmpeg -hide_banner -i tmp_$"${BASH_SOURCE[0]}"MP3WRAP.mp3 -acodec copy all_$$.mp3 && \
+		rm tmp_$"${BASH_SOURCE[0]}"MP3WRAP.mp3
 	${SPC_IONICE_CMD} id3cp "${1}" all_$$.mp3
 	${SPC_IONICE_CMD} ffmpeg -hide_banner -i all_$$.mp3 -acodec speex "${final}"
 	retval=$?
 	rm all_$$.mp3
 	return ${retval}
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${0}" = "${BASH_SOURCE[0]}" ]; then
+if [ "${0}" = "${BASH_SOURCE[0]}" ]; then
 	export SPXC_EXECUTED=true
 	speex_concat "$@"
 fi

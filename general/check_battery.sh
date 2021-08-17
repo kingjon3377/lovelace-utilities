@@ -1,5 +1,5 @@
-#!/bin/sh
-cb_called_path=$_
+#!/bin/bash
+cb_called_path="${BASH_SOURCE[0]}"
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${cb_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 check_battery() {
@@ -22,7 +22,4 @@ check_battery() {
 	#echo "$(cat ${SYS_DIR}/status): $(cat ${SYS_DIR}/energy_now) / $(cat ${SYS_DIR}/energy_full)"
 	#cat /proc/acpi/battery/BAT1/state
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-[ "${cb_called_path}" = "$0" ] && check_battery "$@"
-#[ "${BASH_SOURCE[0]}" = "$0" ] && check_battery "$@"
+[ "${BASH_SOURCE[0]}" = "$0" ] && check_battery "$@"

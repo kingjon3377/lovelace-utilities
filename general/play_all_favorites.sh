@@ -1,5 +1,5 @@
-#!/bin/sh
-cm_called_path=$_
+#!/bin/bash
+cm_called_path="${BASH_SOURCE[0]}"
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${cm_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 play_all_favorites() {
@@ -61,9 +61,6 @@ play_all_favorites() {
 	cd "${ORIG_PWD}"
 }
 
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${cm_called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	play_all_favorites "$@"
 fi

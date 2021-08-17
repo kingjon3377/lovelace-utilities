@@ -1,5 +1,4 @@
-#!/bin/sh
-called_path=$_
+#!/bin/bash
 find_bad_text() {
 	base=${1:-.}
 	cmdline=""
@@ -16,9 +15,6 @@ find_bad_text() {
 		/\.doc: Composite Document File V2 Document,/ { next }
 		{ print }'
 }
-# Testing $_ (saved at the top of the script) against $0 isn't as reliable as
-# $BASH_SOURCE, but is portable to other sh implementations
-if [ "${called_path}" = "$0" ]; then
-#if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 	find_bad_text "$@"
 fi
