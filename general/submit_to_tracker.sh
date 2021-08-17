@@ -15,7 +15,7 @@ submit_to_tracker() {
 	if ! type project_name_to_id > /dev/null 2>&1; then
 		echo "Define project_name_to_id function in environment to use symbolic names"
 		echo "instead of Tracker project ID #s"
-		alias project_name_to_id=echo
+		project_name_to_id() { echo "$@"; }
 	fi
 	local PROJECT=${PROJECT:-${1}}
 	PROJECT=$(project_name_to_id "${PROJECT}")
@@ -99,7 +99,7 @@ submit_tracker_release() {
 	if ! type project_name_to_id > /dev/null 2>&1; then
 		echo "Define project_name_to_id function in environment to use symbolic names"
 		echo "instead of Tracker project ID #s"
-		alias project_name_to_id=echo
+		project_name_to_id() { echo "$@"; }
 	fi
 	PROJECT=$(project_name_to_id "${PROJECT}")
 	proj_ret=$?
