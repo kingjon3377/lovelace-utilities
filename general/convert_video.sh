@@ -25,6 +25,7 @@ convert_video() {
 			*mp4) BASE="${1%.mp4}" DEST="${BASE}.m4a" ;;
 			*webm) BASE="${1%.webm}" DEST="${BASE}.ogg" ;;
 			*3gpp) BASE="${1%.3gpp}" DEST="${BASE}.m4a" ;;
+			*3gp) BASE="${1%.3gp}" DEST="${BASE}.m4a" ;;
 			*mkv) BASE="${1%.mkv}"
 			codec=$(midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//')
 			case "${codec}" in
