@@ -1,10 +1,23 @@
 #!/bin/bash
 # The sourced file uses bashisms, and I think so do we here.
-# shellcheck source=./keep_image.sh
+# shellcheck source=./keep_image.sh disable=SC1091
 . "${BASH_SOURCE[0]%/*}/keep_image.sh"
-# shellcheck source=./lovelace-utilities-source-config.sh
+# shellcheck source=./lovelace-utilities-source-config.sh disable=SC1091
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 get_favorite_images() {
+	if test $# -gt 1; then
+		echo "Usage: get_favorite_images [--possibly-remove]" 1>&2
+		return 1
+	elif test $# -eq 1; then
+		if test "$1" = "--possibly-remove"; then
+			KEEP_IMAGE=keep_image
+		else
+			echo "Usage: get_favorite_images [--possibly-remove]" 1>&2
+			return 1
+		fi
+	else
+		KEEP_IMAGE=:
+	fi
 	lovelace_utilities_source_config
 	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
 		SOURCE_DIRECTORY=${SOURCE_DIRECTORY:-${HOME}/media/photos}
@@ -28,7 +41,7 @@ get_favorite_images() {
 		case "${file}" in
 		*wks|*txt|*ods) continue ;;
 		esac
-		keep_image "${file}"
+		"$KEEP_IMAGE" "${file}"
 		test -f "${file}" || continue
 		if ! pushd "${NEW_DIR}" > /dev/null; then
 			echo "Can't enter NEW_DIR" 1>&2
