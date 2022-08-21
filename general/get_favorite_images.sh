@@ -84,6 +84,7 @@ get_favorite_images() {
 					echo "grabchars isn't working!" 1>&2
 					break
 				fi
+				echo
 			fi
 		fi
 		if ! popd > /dev/null; then
@@ -94,6 +95,7 @@ get_favorite_images() {
 		if test "$(grabchars -q"Keep going? " -b -cyn -dy -t3)" != y;then
 			break
 		fi
+		echo
 	done
 	rm "${PIPE}"
 	popd > /dev/null || return $?
