@@ -46,8 +46,8 @@ convert_video() {
 		echo "About to play the extracted audio; type \"n\" at the next prompt if you want to keep it."
 		play_possibly_remove "${DEST}"
 		if test -e "${DEST}"; then
-			echo "About to play the original file; type \"n\" at the next prompt if you want to keep it."
-			play_possibly_remove "${orig}"
+			echo "Type \"n\" at the next prompt to keep the original file."
+			rm -i "${orig}"
 		fi
 	fi
 }
