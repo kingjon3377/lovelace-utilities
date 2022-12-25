@@ -17,7 +17,8 @@ convert_video() {
 			*flv) BASE="${1%.flv}"
 			codec=$(midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//')
 			case "${codec}" in
-			ffopus|ffvorbis) DEST="${BASE}.ogg" ;;
+			ffopus) DEST="${BASE}.opus" ;;
+			ffvorbis) DEST="${BASE}.ogg" ;;
 			ffaac) DEST="${BASE}.m4a" ;;
 			mpg123) DEST="${BASE}.mp3" ;;
 			*) echo "Unknown codec ${codec} in flv"; return 3 ;;
@@ -29,7 +30,8 @@ convert_video() {
 			*mkv) BASE="${1%.mkv}"
 			codec=$(midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//')
 			case "${codec}" in
-			ffopus|ffvorbis) DEST="${BASE}.ogg" ;;
+			ffopus) DEST="${BASE}.opus" ;;
+			ffvorbis) DEST="${BASE}.ogg" ;;
 			ffaac) DEST="${BASE}.m4a" ;;
 			mpg123) DEST="${BASE}.mp3" ;;
 			*) echo "Unknown codec ${codec} in mkv"; return 3 ;;
