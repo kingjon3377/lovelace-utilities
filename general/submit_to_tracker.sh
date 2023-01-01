@@ -7,7 +7,9 @@
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 submit_to_tracker() {
+	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
+	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
 	if test $# -lt 5; then
 		echo "Usage: submit_to_tracker project type points tags name [state] [desc] [tasks ...]" 1>&2
 		return 1
@@ -90,7 +92,9 @@ submit_to_tracker() {
 # Gentoo Prefix, or some other way and use your PATH or an alias so that this
 # sees that rather than the MacOS default /bin/date.
 submit_tracker_release() {
+	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
+	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
 	if test $# -lt 4; then
 		echo "Usage: submit_tracker_release project tags name due_date [state] [desc]" 1>&2
 		return 1
