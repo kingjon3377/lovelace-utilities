@@ -114,7 +114,7 @@ submit_tracker_release() {
 	local STATE="${STATE:-${5}}"
 	local DESC="${DESC:-${6}}"
 	test -n "${TAGS}" && TAGS=', "labels":['"$(echo "${TAGS}" | sed -e 's@^@"@' -e 's@$@"@' -e 's@,@","@g')"']'
-	test -n "${DUE}" && DUE=', "deadline":"'"$(date -d "${DUE}" "+%FT%T.%3NZ")"'"'
+	test -n "${DUE}" && DUE=', "deadline":"'"$(date -d "${DUE}" --iso-8601=seconds)"'"'
 	test -n "${STATE}" && STATE=', "current_state":"'"${STATE}"'"'
 	test -n "${DESC}" && DESC=', "description":"'"$(echo "${DESC}" | sed -e 's@\\@\\\\@g' -e 's@"@\\"@g')"'"'
 	json="{ \"story_type\":\"release\", \"name\":\"${STORY_NAME}\"${TAGS}${STATE}${DUE}${DESC} }"
