@@ -10,13 +10,23 @@ submit_to_tracker() {
 	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
+	info_echo() {
+		test "${STT_QUIET:-false}" != true && echo "$@"
+	}
+	warn_echo() {
+		echo "$@" 1>&2
+	}
+	if test "$1" = "--quiet"; then
+		STT_QUIET=true
+		shift
+	fi
 	if test $# -lt 5; then
-		echo "Usage: submit_to_tracker project type points tags name [state] [desc] [tasks ...]" 1>&2
+		warn_echo "Usage: submit_to_tracker [--quiet] project type points tags name [state] [desc] [tasks ...]"
 		return 1
 	fi
 	if ! type project_name_to_id > /dev/null 2>&1; then
-		echo "Define project_name_to_id function in environment to use symbolic names"
-		echo "instead of Tracker project ID #s"
+		quiet_echo "Define project_name_to_id function in environment to use symbolic names"
+		quiet_echo "instead of Tracker project ID #s"
 		project_name_to_id() { echo "$@"; }
 	fi
 	local PROJECT=${PROJECT:-${1}}
@@ -26,8 +36,8 @@ submit_to_tracker() {
 	local STORY_TYPE=${STORY_TYPE:-${2}}
 	case "${STORY_TYPE}" in
 		bug|feature|chore) : ;;
-		release) echo "Use submit_tracker_release to create releases" 1>&2; return 3 ;;
-		*) echo "Story type must be one of bug, feature, or chore" 1>&2; return 3 ;;
+		release) warn_echo "Use submit_tracker_release to create releases"; return 3 ;;
+		*) warn_echo "Story type must be one of bug, feature, or chore"; return 3 ;;
 	esac
 	local POINTS=${POINTS:-${3}}
 	if [[ "$(declare -p PROJECTS_WITHOUT_CHORE_PTS 2>/dev/null)" =~ "declare -a" ]]; then
@@ -35,7 +45,7 @@ submit_to_tracker() {
 			if test "${PROJECT}" = "${proj}" -a \
 					"${STORY_TYPE}" = "chore" -a \
 					-n "${POINTS}" -a "${POINTS}" != "0"; then
-				echo "Project ${PROJECT} doesn't support chores with point values" 1>&2
+				warn_echo "Project ${PROJECT} doesn't support chores with point values"
 				return 3
 			fi
 		done
@@ -71,16 +81,16 @@ submit_to_tracker() {
 		ret_json=$(submit_tracker_json "${json}" 2>/dev/null)
 		id=$(echo "${ret_json}" | jq -e '.id')
 		if test $? != 0 || test "${id}" = null; then
-			echo "Adding story apparently failed"
-			if test "${STT_DEBUG:-false}" = true; then
-				echo "You submitted:";
+			warn_echo "Adding story apparently failed"
+			if test "${STT_QUIET:-false}" != true -a "${STT_DEBUG:-false}" = true; then
+				quiet_echo "You submitted:"
 				echo "${json}" | jq '.'
-				echo; echo "They replied:"
+				quiet_echo; quiet_echo "They replied:"
 				echo "${ret_json}" | jq '.'
 			fi
 			return 4
 		else
-			echo "Story is now ID #${id}"
+			quiet_echo "Story is now ID #${id}"
 		fi
 	else
 		submit_tracker_json "${json}" || return 4
@@ -95,14 +105,24 @@ submit_tracker_release() {
 	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
+	info_echo() {
+		test "${STT_QUIET:-false}" != true && echo "$@"
+	}
+	warn_echo() {
+		echo "$@" 1>&2
+	}
+	if test "$1" = "--quiet"; then
+		STT_QUIET=true
+		shift
+	fi
 	if test $# -lt 4; then
-		echo "Usage: submit_tracker_release project tags name due_date [state] [desc]" 1>&2
+		warn_echo "Usage: submit_tracker_release project tags name due_date [state] [desc]"
 		return 1
 	fi
 	local PROJECT=${PROJECT:-${1}}
 	if ! type project_name_to_id > /dev/null 2>&1; then
-		echo "Define project_name_to_id function in environment to use symbolic names"
-		echo "instead of Tracker project ID #s"
+		warn_echo "Define project_name_to_id function in environment to use symbolic names"
+		warn_echo "instead of Tracker project ID #s"
 		project_name_to_id() { echo "$@"; }
 	fi
 	PROJECT=$(project_name_to_id "${PROJECT}")
@@ -125,10 +145,10 @@ submit_tracker_release() {
 	if type jq > /dev/null; then
 		id=$(submit_tracker_json "${json}" 2>/dev/null | jq -e '.id')
 		if test $? != 0 || test "${id}" = null; then
-			echo "Adding release apparently failed"
+			warn_echo "Adding release apparently failed"
 			return 4
 		else
-			echo "Release is now ID #${id}"
+			info_echo "Release is now ID #${id}"
 		fi
 	else
 		submit_tracker_json "${json}" || return 4
