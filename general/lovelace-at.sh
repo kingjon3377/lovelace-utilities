@@ -12,7 +12,8 @@
 # appears to succeed removes it. We do some locking to avoid unwanted
 # double-execution, but tasks are only removed on success to allow retrying
 # later (such as if a task requires Internet access and the network is down at
-# the time).
+# the time). Any file in the task directory with a file extension of .template is
+# silently ignored.
 TASK_DIR_INNER=${1:-${TASK_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/lovelace-at-tasks}}
 if ! test -d "${TASK_DIR_INNER}";then
 	mkdir -p "${TASK_DIR_INNER}"
@@ -32,6 +33,7 @@ base_timestamp=$(date +%s)
 for file in "${task_list[@]}";do 
 	case "${file}" in
 	*.sh) file_timestamp="${file%%.sh}" ;;
+	*.template) continue ;;
 	*) echo "${file##*/}: Not a supported extension" 1>&2 ; continue ;;
 	esac
 	file_timestamp="${file_timestamp##*/}"
