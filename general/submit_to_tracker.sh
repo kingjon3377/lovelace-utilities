@@ -25,8 +25,8 @@ submit_to_tracker() {
 		return 1
 	fi
 	if ! type project_name_to_id > /dev/null 2>&1; then
-		quiet_echo "Define project_name_to_id function in environment to use symbolic names"
-		quiet_echo "instead of Tracker project ID #s"
+		info_echo "Define project_name_to_id function in environment to use symbolic names"
+		info_echo "instead of Tracker project ID #s"
 		project_name_to_id() { echo "$@"; }
 	fi
 	local PROJECT=${PROJECT:-${1}}
@@ -83,14 +83,14 @@ submit_to_tracker() {
 		if test $? != 0 || test "${id}" = null; then
 			warn_echo "Adding story apparently failed"
 			if test "${STT_QUIET:-false}" != true -a "${STT_DEBUG:-false}" = true; then
-				quiet_echo "You submitted:"
+				info_echo "You submitted:"
 				echo "${json}" | jq '.'
-				quiet_echo; quiet_echo "They replied:"
+				info_echo; info_echo "They replied:"
 				echo "${ret_json}" | jq '.'
 			fi
 			return 4
 		else
-			quiet_echo "Story is now ID #${id}"
+			info_echo "Story is now ID #${id}"
 		fi
 	else
 		submit_tracker_json "${json}" || return 4
