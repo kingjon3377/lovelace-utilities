@@ -11,7 +11,7 @@ submit_to_tracker() {
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
 	info_echo() {
-		test "${STT_QUIET:-false}" != true && echo "$@"
+		test "${STT_QUIET:-false}" = true || echo "$@"
 	}
 	warn_echo() {
 		echo "$@" 1>&2
