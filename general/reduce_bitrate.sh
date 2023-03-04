@@ -22,3 +22,8 @@ reduce_bitrate() {
 			echo "Remove new file instead?" && rm -i "${newfile}" ;;
 	esac
 }
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+	for file in "$@";do
+		reduce_bitrate "${file}"
+	done
+fi
