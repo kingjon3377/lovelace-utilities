@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "sudo pm-hibernate" | at now + 1 minute
+echo "sudo loginctl hibernate" | at now + 1 minute
