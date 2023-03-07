@@ -1,2 +1,2 @@
 #!/bin/sh
-python2 -c 'import sys, urllib; print urllib.unquote(sys.argv[1])' "$1"
+python3 -c 'import sys; from urllib.parse import unquote; print(unquote(sys.argv[1]))' "$1"
