@@ -19,7 +19,7 @@ recompress_recursive() {
 #			elif [ "$(basename "${filename}")" != \
 #					"$(basename "${filename}" "${a}")" ]
 			# If the filename has the extension ${ext}, we want to recompress it.
-			elif [ "${filename}" != "${filename%${ext}}" ]
+			elif [ "${filename}" != "${filename%"${ext}"}" ]
 			then
 				recompress "${filename}"
 				return $?

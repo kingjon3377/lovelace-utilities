@@ -23,14 +23,14 @@ music_move() {
 		return 1
 	fi
 	BASE=$(realpath --relative-to="${HOME}" "${MUSIC_COLLECTION}")
-	SRC="${1##${BASE}}"
+	SRC="${1##"${BASE}"}"
 	SRC="${SRC##/}"
-	DEST="${2##${BASE}}"
+	DEST="${2##"${BASE}"}"
 	DEST="${DEST##/}"
 	for dir in "${MUSIC_FAVORITES_DIRS[@]}";do
-		SRC="${SRC##${dir}}"
+		SRC="${SRC##"${dir}"}"
 		SRC="${SRC##/}"
-		DEST="${DEST##${dir}}"
+		DEST="${DEST##"${dir}"}"
 		DEST="${DEST##/}"
 	done
 	if [ ! -e "${MUSIC_COLLECTION}/${SRC}" ]; then

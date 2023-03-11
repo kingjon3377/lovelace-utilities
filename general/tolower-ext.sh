@@ -9,7 +9,7 @@ tolower_ext() {
 	shift
 	for f in "$@";do
 		case ${f} in
-		*${ext}) mv -iv "${f}" "${f%%${ext}}${extlower}" ;;
+		*${ext}) mv -iv "${f}" "${f%%"${ext}"}${extlower}" ;;
 		*) ;;
 		esac
 	done
