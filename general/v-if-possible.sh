@@ -42,7 +42,7 @@ v_if_possible() {
 	lzip -v -9 -k "${filename}"
 	lz_size="$(stat -c "%s" "${filename}".lz)"
 	rm "${filename}".lz
-	if [ $SKIP_RZIP = true ]; then
+	if [ "$SKIP_RZIP" = true ]; then
 		rzip_size="$(( raw_size * raw_size))"
 	else
 		rzip -9 -k -P "${filename}"
