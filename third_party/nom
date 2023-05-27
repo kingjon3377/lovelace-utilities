@@ -21,8 +21,8 @@ trap 'rm -f $temp; exit $stat' 0 1 2 15
 
 # Must have at least one argument, and all have to be in current directory:
 case "$*" in
-"")	echo Usage: `basename $0` pattern 1>&2; exit ;;
-*/*)	echo "`basename $0` quitting: I can't handle '/'s." 1>&2; exit ;;
+"")	echo Usage: $(basename "$0") pattern 1>&2; exit ;;
+*/*)	echo "$(basename "$0") quitting: I can't handle '/'s." 1>&2; exit ;;
 esac
 
 # ls gives sorted file list. -d=don't enter directories, -1=one name/line:

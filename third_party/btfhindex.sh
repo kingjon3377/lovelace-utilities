@@ -59,7 +59,7 @@ to_roman() {
 		esac
 		input=${input:1} ; len=${#input}
 	done
-	echo $output
+	echo "$output"
 }
 
 chapter_found() {

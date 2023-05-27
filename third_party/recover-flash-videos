@@ -1,5 +1,5 @@
 #!/bin/sh
-find /proc/*/fd -ilname "/tmp/Flash*" 2>/dev/null | while read h; do
+find /proc/*/fd -ilname "/tmp/Flash*" 2>/dev/null | while read -r h; do
 	path=$(readlink "$h" | cut -d' ' -f1)
 	[ -f "$path" ] || {
 	    echo "$path"
