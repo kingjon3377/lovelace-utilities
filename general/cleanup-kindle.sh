@@ -75,6 +75,8 @@ if ! test -d "${KINDLE_DIR}/documents"; then
 	exit 1
 fi
 
+already_handled=( )
+
 cd "${KINDLE_DIR}/documents" || exit $?
 debug_print "About to start pass through files on Kindle"
 for file in *;do
@@ -96,11 +98,26 @@ for file in *;do
 		test "${inner_file}" = "${norm}" && continue
 		test "${base}" = "${norm}" && matched=true && break
 	done < "${KINDLE_FAVORITES}"
+	for inner in "${already_handled[@]}"; do
+		test "${inner}" = "${file}" && matched=true && debug_print "already removed/kept" && break
+	done
 	test "${matched}" = true && continue
 	if test -d "$file" && # test if empty
 			! find "$file" -mindepth 1 -maxdepth 1 | read -r ; then
 		debug_print "Removing empty directory"
 		rmdir "$file"
+		continue
+	fi
+	if test -f "${base}.azw3" && test -d "${base}.sdr"; then
+		debug_print "Removing AZW and SDR"
+		# TODO: Use grabchars if available
+		echo -n "Remove ${base}.{azw3,sdr} ? "
+		read resp
+		case "${resp,,}" in
+		y|yes) rm -r "${base}.azw3" "${base}.sdr" && already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
+		n|no) already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
+		*) echo "Invalid response" 1>&2 ; continue ;;
+		esac
 	elif test -d "$file";then
 		debug_print "Removing non-empty directory"
 		echo -n "${file}: " && rm -rI "$file"
