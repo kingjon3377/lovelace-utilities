@@ -3,6 +3,13 @@
 # of detecting the script's location
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
+under_trickle() {
+	if test -x /usr/bin/trickle -a -n "${TRICKLE_MAX_KB}";then
+		/usr/bin/trickle -u "${TRICKLE_MAX_KB}" -d "${TRICKLE_MAX_KB}" "$@"
+	else
+		"$@"
+	fi
+}
 synchronize() {
 	lovelace_utilities_source_config_bash
 	if [ "${LOVELACE_CONFIG_SOURCED:-false}" = false ]; then
@@ -61,9 +68,9 @@ synchronize() {
 				fi
 			fi
 			if test "${GRAPHICAL_SYNC:-no}" = yes; then
-				unison -ui graphic "${a}" "ssh://${host}/${a}" || return $?
+				under_trickle unison -ui graphic "${a}" "ssh://${host}/${a}" || return $?
 			else
-				unison -ui text "${a}" "ssh://${host}/${a}" || return $?
+				under_trickle unison -ui text "${a}" "ssh://${host}/${a}" || return $?
 			fi
 			if [ -x "${a}/.postsync.sh" ];then
 				if pushd "${a}" > /dev/null; then
