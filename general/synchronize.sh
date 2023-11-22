@@ -5,7 +5,7 @@
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 under_trickle() {
 	if test -x /usr/bin/trickle -a -n "${TRICKLE_MAX_KB}";then
-		/usr/bin/trickle -u "${TRICKLE_MAX_KB}" -d "${TRICKLE_MAX_KB}" "$@"
+		/usr/bin/trickle -s -u "${TRICKLE_MAX_KB}" -d "${TRICKLE_MAX_KB}" "$@"
 	else
 		"$@"
 	fi
