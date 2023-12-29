@@ -29,6 +29,8 @@ KINDLE_DIR="${KINDLE_DIR:-/mnt/kindle}"
 # accents dropped, etc.)
 KINDLE_FAVORITES="${KINDLE_FAVORITES:-${HOME}/favorite_fanfics.txt}"
 
+readarray -t KINDLE_FAVORITES_ARRAY <(grep -v '^#' "${KINDLE_FAVORITES}")
+
 # An array of markers indicating that a line may contain an indication of the
 # date/time the ebook was published or updated; these lines are compared betwee
 # the EPUB and the AZW to see if the latter is up to date. The default set
@@ -77,6 +79,16 @@ fi
 
 already_handled=( )
 
+in_array() {
+	local on_success="$1"
+	local pattern="$2"
+	shift 2
+	for arg in "$@";do
+		echo "${arg}" | grep -q "${pattern}" && debug_print "${on_success}" return 0
+	done
+	return 1
+}
+
 cd "${KINDLE_DIR}/documents" || exit $?
 debug_print "About to start pass through files on Kindle"
 for file in *;do
@@ -89,15 +101,15 @@ for file in *;do
 	*.sdr) base="${file%%.sdr}" ;;
 	*) echo "Unexpected file $file" 1>&2 ; continue ;;
 	esac
-	grep -q "/${base}$" "${KINDLE_FAVORITES}" && debug_print "in favorites" && continue
+	in_array "in favorites" "/${base}$" "${KINDLE_FAVORITES_ARRAY[@]}" && continue
 	# Catch case where book title and canonical filename include Unicode characters
 	matched=false
-	while read -r line; do
+	for line in "${KINDLE_FAVORITES_ARRAY[@]}";do
 		inner_file="${line##*/}"
 		norm="$(echo "${inner_file}" | iconv -f UTF-8 -t ASCII//TRANSLIT -)"
 		test "${inner_file}" = "${norm}" && continue
-		test "${base}" = "${norm}" && matched=true && break
-	done < "${KINDLE_FAVORITES}"
+		test "${base}" = "${norm}" && matched=true && debug_print "already removed/kept in different charset" && break
+	done
 	for inner in "${already_handled[@]}"; do
 		test "${inner}" = "${file}" && matched=true && debug_print "already removed/kept" && break
 	done
@@ -112,7 +124,7 @@ for file in *;do
 		debug_print "Removing AZW and SDR"
 		# TODO: Use grabchars if available
 		echo -n "Remove ${base}.{azw3,sdr} ? "
-		read resp
+		read -r resp
 		case "${resp,,}" in
 		y|yes) rm -r "${base}.azw3" "${base}.sdr" && already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
 		n|no) already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
@@ -141,7 +153,7 @@ dates_lines() {
 	grep "${temp[@]}" | strip_calibre_markup | sort
 }
 tmpdir="$(mktemp -d)"
-while read -r line;do
+for line in "${KINDLE_FAVORITES_ARRAY[@]}";do
 	debug_print "line is ${line}"
 	file="${line##*/}"
 	norm="$(echo "${file}" | iconv -f UTF-8 -t ASCII//TRANSLIT -)"
@@ -182,5 +194,5 @@ while read -r line;do
 	fi
 	test "${debug:-off}" = on || rm -r "${tmpdir}/${norm}_markup"
 	debug_print "Finished with ${file}"
-done < "${KINDLE_FAVORITES}"
+done
 rmdir "${tmpdir}"
