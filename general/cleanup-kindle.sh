@@ -29,7 +29,7 @@ KINDLE_DIR="${KINDLE_DIR:-/mnt/kindle}"
 # accents dropped, etc.)
 KINDLE_FAVORITES="${KINDLE_FAVORITES:-${HOME}/favorite_fanfics.txt}"
 
-readarray -t KINDLE_FAVORITES_ARRAY <(grep -v '^#' "${KINDLE_FAVORITES}")
+readarray -t KINDLE_FAVORITES_ARRAY < <(grep -v '^#' "${KINDLE_FAVORITES}")
 
 # An array of markers indicating that a line may contain an indication of the
 # date/time the ebook was published or updated; these lines are compared betwee
@@ -84,7 +84,7 @@ in_array() {
 	local pattern="$2"
 	shift 2
 	for arg in "$@";do
-		echo "${arg}" | grep -q "${pattern}" && debug_print "${on_success}" return 0
+		echo "${arg}" | grep -q "${pattern}" && debug_print "${on_success}" && return 0
 	done
 	return 1
 }
