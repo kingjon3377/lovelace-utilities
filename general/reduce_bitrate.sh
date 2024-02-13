@@ -3,7 +3,10 @@
 # the two files and ask the user to confirm replacing the old with the new (if
 # the original is Opus already) or removing the old in favor of the new (if an
 # MP3 or M4A).
-reduce_bitrate() { 
+size_file() {
+	du "$@" | sed 's@[ 	]*\([0-9]*\)[ 	].*@\1@'
+}
+reduce_bitrate() {
 	file="${1}"
 	case "${file}" in
 		*.opus) base="${file%%.opus}" ; newfile="${base}.new.opus" ; domv=true ;;
@@ -13,6 +16,17 @@ reduce_bitrate() {
 		*) echo "Unexpected file extension in '${file}'" 1>&2 ; return 1 ;;
 	esac
 	ffmpeg -hide_banner -i "${file}" -c:a libopus -b:a 48k -vbr on "${newfile}" || return $?
+	old_size=$(size_file "${file}")
+	new_size=$(size_file "${newfile}")
+	if test "$new_size" -gt "$old_size"; then
+		echo "New file seems larger than old" 1>&2
+		rm "${newfile}"
+		return
+	elif test "$new_size" -eq "$old_size"; then
+		echo "New file seems about as big as old" 1>&2
+		rm "${newfile}"
+		return
+	fi
 	du -h "${file}" "${newfile}"
 	echo "Press Enter to play files to compare"
 	read -r
