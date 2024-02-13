@@ -2,7 +2,7 @@
 rc_called_path="${BASH_SOURCE[0]}"
 if [ -f "${rc_called_path%/*}/z-if-possible.sh"  ];then
 # shellcheck source=./z-if-possible.sh
-    . "${rc_called_path%/*}/z-if-possible.sh"
+	. "${rc_called_path%/*}/z-if-possible.sh"
 elif [ -f "${HOME}/bin/z-if-possible.sh" ];then
 # shellcheck source=./z-if-possible.sh
 	. "${HOME}/bin/z-if-possible.sh" || return 2
@@ -64,7 +64,7 @@ recompress() {
 			base="${filename%.[Tt][Ll][Zz]}.tar"
 			decompress="lzip -d" ;;
 		*)
-			echo "${0}: I don't know how to handle ${filename}" 
+			echo "${0}: I don't know how to handle ${filename}"
 			return 0 ;;
 		esac
 		if [ -e "${base}" ]; then
