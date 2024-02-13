@@ -5,7 +5,7 @@
 # MP3 or M4A).
 reduce_bitrate() { 
 	file="${1}"
-	case "${file}" in 
+	case "${file}" in
 		*.opus) base="${file%%.opus}" ; newfile="${base}.new.opus" ; domv=true ;;
 		*.m4a) base="${file%%.m4a}" ; newfile="${base}.opus" ; domv=false ;;
 		*.mp3) base="${file%%.mp3}" ; newfile="${base}.opus" ; domv=false ;;
@@ -16,10 +16,23 @@ reduce_bitrate() {
 	echo "Press Enter to play files to compare"
 	read -r
 	mplayer "${file}" "${newfile}" || return $?
-	case "${domv}" in 
-		true) mv -i "${newfile}" "${file}" && test -f "${newfile}" && echo "Remove new file instead?" && rm -i "${newfile}" ;;
-		false) echo "Remove original file, leaving new file?" && rm -i "${file}" && test -f "${file}" && \
-			echo "Remove new file instead?" && rm -i "${newfile}" ;;
+	du -h "${file}" "${newfile}"
+	case "${domv}" in
+		true) if ! mv -i "${newfile}" "${file}"; then
+				echo "mv failed" 1>&2
+				return 1
+			elif test -f "${newfile}"; then
+				echo "Remove new file instead?"
+				rm -i "${newfile}"
+			fi ;;
+		false) echo "Remove original file, leaving new file?"
+			if ! rm -i "${file}"; then
+				echo "rm failed" 1>&2
+				return 1
+			elif test -f "${file}"; then
+			    echo "Remove new file instead?"
+				rm -i "${newfile}"
+			fi ;;
 	esac
 }
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
