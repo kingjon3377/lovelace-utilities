@@ -9,6 +9,7 @@ reduce_bitrate() {
 		*.opus) base="${file%%.opus}" ; newfile="${base}.new.opus" ; domv=true ;;
 		*.m4a) base="${file%%.m4a}" ; newfile="${base}.opus" ; domv=false ;;
 		*.mp3) base="${file%%.mp3}" ; newfile="${base}.opus" ; domv=false ;;
+		*.ogg) base="${file%%.ogg}" ; newfile="${base}.opus" ; domv=false ;;
 		*) echo "Unexpected file extension in '${file}'" 1>&2 ; return 1 ;;
 	esac
 	ffmpeg -hide_banner -i "${file}" -c:a libopus -b:a 48k -vbr on "${newfile}" || return $?
