@@ -1,4 +1,16 @@
 #!/bin/bash
+size_file() {
+	case "$OSTYPE" in
+		darwin*) /usr/bin/stat -f "%z" "$@" ;;
+		*) stat -c "%s" "$@" ;;
+	esac
+}
+num_links() {
+	case "$OSTYPE" in
+		darwin*) /usr/bin/stat -f "%l" "$@" ;;
+		*) stat -c "%h" "$@" ;;
+	esac
+}
 z_if_possible() {
 	if [ $# -ge 2 ] && [ "$2" = "--skip-rzip" ]; then
 		SKIP_RZIP=true
@@ -21,29 +33,29 @@ z_if_possible() {
 		echo Looks like one of my output formats, skipping ... 1>&2
 		return 0 ;;
 	esac
-	if [ "$(stat -c "%h" "${filename}")" -ne 1 ]; then
+	if [ "$(num_links "${filename}")" -ne 1 ]; then
 		echo "z_if_possible: ${filename} has more than one link, skipping ..." 1>&2
 		return 0
 	fi
-	raw_size="$(stat -c "%s" "${filename}")"
+	raw_size="$(size_file "${filename}")"
 	gzip -9 < "${filename}" > "${filename}".gz
-	gzip_size="$(stat -c "%s" "${filename}".gz)"
+	gzip_size="$(size_file "${filename}".gz)"
 	rm "${filename}".gz
 	bzip2 -f -k "${filename}"
-	bzip_size="$(stat -c "%s" "${filename}".bz2)"
+	bzip_size="$(size_file "${filename}".bz2)"
 	rm "${filename}".bz2
 	lzip -9 -k "${filename}"
-	lz_size="$(stat -c "%s" "${filename}".lz)"
+	lz_size="$(size_file "${filename}".lz)"
 	rm "${filename}".lz
 	if [ "$SKIP_RZIP" = true ]; then
 		rzip_size="$(( raw_size * raw_size ))"
 	else
 		rzip -9 -k "${filename}"
-		rzip_size="$(stat -c "%s" "${filename}".rz)"
+		rzip_size="$(size_file "${filename}".rz)"
 		rm "${filename}".rz
 	fi
 	lrzip -z -q -N 0 "${filename}"
-	lrzip_size="$(stat -c "%s" "${filename}".lrz)"
+	lrzip_size="$(size_file "${filename}".lrz)"
 	rm "${filename}".lrz
 	if [ "$raw_size" -le "$gzip_size" ] && [ "$raw_size" -le "$bzip_size" ] && \
 			[ "$raw_size" -le "$lz_size" ] && [ "$raw_size" -le "$rzip_size" ] && \
