@@ -3,7 +3,6 @@
 # nonportable method of detecting this script's directory
 # shellcheck source=./lovelace-utilities-source-config.sh
 . "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
-# TODO: Make a way to handle multiple 'favorites' directories (e.g. favorites, easter, xmas) at once
 # Creates, or maintains by asking only about files added to the main collection
 # since last checked, a "favorites" directory or directories. This relies on
 # several environment variables for configuration:
