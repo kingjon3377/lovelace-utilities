@@ -176,7 +176,7 @@ def check_file(config, music_favorites_dirs, checked_file_cache, folder, file):
     if not file.is_file():
         return False
     music_collection = Path(config.music_collection)
-    relpath = file.relative_to(folder)
+    relpath = file.relative_to(folder.parent)
     missing_favorites = []
     for collection in music_favorites_dirs:
         in_collection = music_collection / collection / relpath
