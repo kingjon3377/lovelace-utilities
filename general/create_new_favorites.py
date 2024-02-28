@@ -64,7 +64,7 @@ def user_approve(prompt, default=None):
     """Ask the user whether to perform an action, and return the user's
        response (True/False)."""
     with term.cbreak():
-        print(prompt)
+        print(prompt, end='', flush=True)
         while True:
             inp = term.inkey(timeout=10)
             if not inp:
@@ -193,9 +193,9 @@ def check_file(config, music_favorites_dirs, checked_file_cache, folder, file):
         if in_collection.is_file():
             checked_file_cache.add_to_cache(collection, file)
             continue
-        if user_approve(f"Is {file} in favorites? ", default=False):
-            parent = in_collection.parent()
-            parent.mkdir(parents=True, exists_ok=True)
+        if user_approve(f"Is {relpath} in {collection}? ", default=False):
+            parent = in_collection.parent
+            parent.mkdir(parents=True, exist_ok=True)
             in_collection.hardlink_to(file)
         checked_file_cache.add_to_cache(collection, file)
     return True
@@ -215,7 +215,7 @@ def main():
     for dir_name in config.music_favorites_dirs:
         folder = music_collection / dir_name
         folder.mkdir(exist_ok=True)
-        music_favorites_dirs.append(folder)
+        music_favorites_dirs.append(dir_name)
     checked_file_cache = CheckedFileCache(music_collection)
     for root in config.music_root_dirs:
         folder = music_collection / root
