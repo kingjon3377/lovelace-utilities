@@ -224,3 +224,7 @@ def main():
                                       checked_file_cache, folder, file)
             if check_result and not user_approve("Keep going? ", default=True):
                 break
+
+
+if __name__ == "__main__":
+    main()
