@@ -3,10 +3,17 @@
 # the two files and ask the user to confirm replacing the old with the new (if
 # the original is Opus already) or removing the old in favor of the new (if an
 # MP3 or M4A).
+
+cm_called_path="${BASH_SOURCE[0]}"
+cm_lib_path="${cm_lib_path:-${cm_called_path:-${HOME}/bin/discarded}}"
+# shellcheck source=./lovelace-utilities-source-config.sh
+. "${cm_lib_path%/*}/lovelace-utilities-source-config.sh" || return 1
+
 size_file() {
 	du "$@" | sed 's@[ 	]*\([0-9]*\)[ 	].*@\1@'
 }
 reduce_bitrate() {
+	lovelace_utilities_source_config
 	file="${1}"
 	case "${file}" in
 		*.opus) base="${file%%.opus}" ; newfile="${base}.new.opus" ; domv=true ;;
@@ -30,7 +37,7 @@ reduce_bitrate() {
 	du -h "${file}" "${newfile}"
 	echo "Press Enter to play files to compare"
 	read -r
-	mplayer "${file}" "${newfile}" || return $?
+	${PLAYER_COMMAND:-mplayer} "${file}" "${newfile}" || return $?
 	du -h "${file}" "${newfile}"
 	case "${domv}" in
 		true) if ! mv -i "${newfile}" "${file}"; then
