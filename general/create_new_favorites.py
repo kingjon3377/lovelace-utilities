@@ -68,6 +68,14 @@ def user_approve(prompt, default=None):
         while True:
             inp = term.inkey(timeout=10)
             if not inp:
+                if default is True:
+                    print('(y)')
+                elif default is False:
+                    print('(n)')
+                elif default is None:
+                    print()
+                else:
+                    print(f'({default})')
                 return default
             if inp.lower() == 'y':
                 print(inp)
