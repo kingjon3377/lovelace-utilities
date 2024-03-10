@@ -189,9 +189,9 @@ def check_file(config, music_favorites_dirs, checked_file_cache, folder, file):
     for collection in music_favorites_dirs:
         in_collection = music_collection / collection / relpath
         if in_collection.is_file():
-            return False
+            continue
         if checked_file_cache.in_checked_file(collection, file):
-            return False
+            continue
         missing_favorites.append(collection)
     if not missing_favorites:
         return False
