@@ -23,9 +23,9 @@ v_if_possible() {
 #			[ "${base}" != "$(basename "${filename}" .tlz)" ] ||\
 #			[ "${base}" != "$(basename "${filename}" .lrz)" ];then
 	case "${filename}" in
-	*.gz | *.bz2 | *.lz | *.rz | *.tgz | *.tbz2 | *.tlz | *.lrz)
-		echo Looks like one of my output formats, skipping ... 1>&2
-		return 0 ;;
+		*.gz | *.bz2 | *.lz | *.rz | *.tgz | *.tbz2 | *.tlz | *.lrz)
+			echo Looks like one of my output formats, skipping ... 1>&2
+			return 0 ;;
 	esac
 	cmd="${0##*/}"
 	if [ "$(stat -c "%h" "${filename}")" -ne 1 ]; then

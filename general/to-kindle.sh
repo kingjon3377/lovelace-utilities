@@ -13,12 +13,12 @@ to_kindle() {
 		for file in "$@"; do
 			name="${file##*/}"
 			case "${file}" in
-			*.epub) base="${name%.epub}" ;;
-			*.mobi) base="${name%.mobi}" ;;
-			*.txt) base="${name%.txt}" ;;
-			*.htm) base="${name%.htm}" ;;
-			*.html) base="${name%.html}" ;;
-			*) echo "Don't know how to handle ${file}" 1>&2 ; continue ;;
+				*.epub) base="${name%.epub}" ;;
+				*.mobi) base="${name%.mobi}" ;;
+				*.txt) base="${name%.txt}" ;;
+				*.htm) base="${name%.htm}" ;;
+				*.html) base="${name%.html}" ;;
+				*) echo "Don't know how to handle ${file}" 1>&2 ; continue ;;
 			esac
 			if test -z "${KEEP_AZW3}"; then
 				ebook-convert "${file}" \
@@ -44,4 +44,4 @@ to_kindle() {
 	fusermount -u "${dir}"
 	rmdir "${dir}"
 }
- [ "${BASH_SOURCE[0]}" = "$0" ] && to_kindle "$@"
+[ "${BASH_SOURCE[0]}" = "$0" ] && to_kindle "$@"

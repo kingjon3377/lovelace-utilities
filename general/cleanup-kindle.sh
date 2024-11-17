@@ -94,12 +94,12 @@ debug_print "About to start pass through files on Kindle"
 for file in *;do
 	debug_print -n "Handling ${file} ... "
 	case "$file" in
-	dictionaries*) debug_print "a dictionary"; continue ;;
-	"My Clippings"*) debug_print "user clippings"; continue ;;
-	Kindle?User*) debug_print "User Guide"; continue ;;
-	*.azw3) base="${file%%.azw3}" ;;
-	*.sdr) base="${file%%.sdr}" ;;
-	*) echo "Unexpected file $file" 1>&2 ; continue ;;
+		dictionaries*) debug_print "a dictionary"; continue ;;
+		"My Clippings"*) debug_print "user clippings"; continue ;;
+		Kindle?User*) debug_print "User Guide"; continue ;;
+		*.azw3) base="${file%%.azw3}" ;;
+		*.sdr) base="${file%%.sdr}" ;;
+		*) echo "Unexpected file $file" 1>&2 ; continue ;;
 	esac
 	in_array "in favorites" "/${base}$" "${KINDLE_FAVORITES_ARRAY[@]}" && continue
 	# Catch case where book title and canonical filename include Unicode characters
@@ -126,9 +126,9 @@ for file in *;do
 		echo -n "Remove ${base}.{azw3,sdr} ? "
 		read -r resp
 		case "${resp,,}" in
-		y|yes) rm -r "${base}.azw3" "${base}.sdr" && already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
-		n|no) already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
-		*) echo "Invalid response" 1>&2 ; continue ;;
+			y|yes) rm -r "${base}.azw3" "${base}.sdr" && already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
+			n|no) already_handled+=( "${base}.azw3" "${base}.sdr" ) && continue ;;
+			*) echo "Invalid response" 1>&2 ; continue ;;
 		esac
 	elif test -d "$file";then
 		debug_print "Removing non-empty directory"
@@ -174,7 +174,7 @@ for line in "${KINDLE_FAVORITES_ARRAY[@]}";do
 			debug_print "${file} matches an OPF whitelist pattern"
 		elif test "${#general_whitelist[@]}" -gt 0 && unzip -p "${line}" | grep -a -q "${general_whitelist[@]}"; then
 			debug_print "${file} matches a general whitelist pattern"
-		else 
+		else
 			echo "Failed to detect dates in ${file}" 1>&2
 		fi
 		continue

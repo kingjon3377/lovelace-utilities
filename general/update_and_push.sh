@@ -12,21 +12,21 @@ update_and_push() {
 	# FIXME: Support git at least. Or combine this with the other script to the same purpose in this collection
 	for arg in "$@"; do
 		case ${arg} in
-		*/.hg)
-			OLD_PWD="${PWD}"
-			cd "${arg}/.." || break
-			hg pull -u
-			grep -q "${UPSTREAM_USERNAME_STRING}" .hg/hgrc && hg push
-			cd "${OLD_PWD}" || break ;;
-		*) if [ -d "${arg}/.hg" ] ; then
+			*/.hg)
 				OLD_PWD="${PWD}"
-				cd "${arg}" || break
+				cd "${arg}/.." || break
 				hg pull -u
-				grep -q UPSTREAM_USERNAME_STRINGkingjon .hg/hgrc && hg push
-				cd "${OLD_PWD}"|| break
-			else
-				echo "${arg} is not a Hg repo"
-			fi ;;
+				grep -q "${UPSTREAM_USERNAME_STRING}" .hg/hgrc && hg push
+				cd "${OLD_PWD}" || break ;;
+			*) if [ -d "${arg}/.hg" ] ; then
+					OLD_PWD="${PWD}"
+					cd "${arg}" || break
+					hg pull -u
+					grep -q UPSTREAM_USERNAME_STRINGkingjon .hg/hgrc && hg push
+					cd "${OLD_PWD}"|| break
+				else
+					echo "${arg} is not a Hg repo"
+				fi ;;
 		esac
 	done
 }

@@ -29,9 +29,9 @@ z_if_possible() {
 		return 0
 	fi
 	case "${filename}" in
-	*.gz | *.bz2 | *.lz | *.lzma | *.rz | *.tgz | *.tbz2 | *.tlz | *.lrz)
-		echo Looks like one of my output formats, skipping ... 1>&2
-		return 0 ;;
+		*.gz | *.bz2 | *.lz | *.lzma | *.rz | *.tgz | *.tbz2 | *.tlz | *.lrz)
+			echo Looks like one of my output formats, skipping ... 1>&2
+			return 0 ;;
 	esac
 	if [ "$(num_links "${filename}")" -ne 1 ]; then
 		echo "z_if_possible: ${filename} has more than one link, skipping ..." 1>&2

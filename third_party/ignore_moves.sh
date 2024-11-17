@@ -44,21 +44,21 @@ diff_lines="$(grep '^[><+-][^><+-]' | sed 's/^+/>/;s/^-/</')" || exit 0
 
 while IFS= read -r line
 do
-    contents="${line:2}"
-    count_removes="$(grep -cFxe "< $contents" <<< "$diff_lines" || true)"
-    count_adds="$(grep -cFxe "> $contents" <<< "$diff_lines" || true)"
-    if [[ "$count_removes" -eq "$count_adds" ]]
-    then
-        # Line has been moved; skip it.
-        continue
-    fi
+	contents="${line:2}"
+	count_removes="$(grep -cFxe "< $contents" <<< "$diff_lines" || true)"
+	count_adds="$(grep -cFxe "> $contents" <<< "$diff_lines" || true)"
+	if [[ "$count_removes" -eq "$count_adds" ]]
+	then
+		# Line has been moved; skip it.
+		continue
+	fi
 
-    echo "$line"
+	echo "$line"
 done <<< "$diff_lines"
 
 if [ "${line+defined}" = defined ]
 then
-    printf "%s" "$line"
+	printf "%s" "$line"
 fi
 
 exit 1 # Diff exists, so we should use the diff exit code

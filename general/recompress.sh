@@ -30,42 +30,42 @@ recompress() {
 		return 0
 	else
 		case "${filename}" in
-		*.[gG][Zz])
-			base="${filename%.[gG][zZ]}"
-			decompress=gunzip ;;
-		*.[bB][zZ]2)
-			base="${filename%.[bB][zZ]2}"
-			decompress=bunzip2 ;;
-		*.[rR][zZ])
-			base="${filename%.[rR][zZ]}"
-			decompress=runzip ;;
-		*.[lL][rR][zZ])
-			base="${filename%.[lL][rR][zZ]}"
-			decompress="lrunzip -D" ;;
-		*.[xX][zZ])
-			base="${filename%.[xX][zZ]}"
-			decompress=unxz ;;
-		*.[Ll][Zz][Mm][Aa])
-			base="${filename%.[Ll][Zz][Mm][Aa]}"
-			decompress=unxz ;;
-		*.[tT][Gg][Zz])
-			base="${filename%.[Tt][Gg][Zz]}.tar"
-			decompress=gunzip ;;
-		*.[Tt][Bb][Zz]2)
-			base="${filename%.[Tt][Bb][Zz]2}.tar"
-			decompress=bunzip2 ;;
-		*.[Tt][Xx][Zz])
-			base="${filename%.[Tt][Xx][Zz]}.tar"
-			decompress=unxz ;;
-		*.[Ll][Zz])
-			base="${filename%.[Ll][Zz]}"
-			decompress="lzip -d" ;;
-		*.[Tt][Ll][Zz])
-			base="${filename%.[Tt][Ll][Zz]}.tar"
-			decompress="lzip -d" ;;
-		*)
-			echo "${0}: I don't know how to handle ${filename}"
-			return 0 ;;
+			*.[gG][Zz])
+				base="${filename%.[gG][zZ]}"
+				decompress=gunzip ;;
+			*.[bB][zZ]2)
+				base="${filename%.[bB][zZ]2}"
+				decompress=bunzip2 ;;
+			*.[rR][zZ])
+				base="${filename%.[rR][zZ]}"
+				decompress=runzip ;;
+			*.[lL][rR][zZ])
+				base="${filename%.[lL][rR][zZ]}"
+				decompress="lrunzip -D" ;;
+			*.[xX][zZ])
+				base="${filename%.[xX][zZ]}"
+				decompress=unxz ;;
+			*.[Ll][Zz][Mm][Aa])
+				base="${filename%.[Ll][Zz][Mm][Aa]}"
+				decompress=unxz ;;
+			*.[tT][Gg][Zz])
+				base="${filename%.[Tt][Gg][Zz]}.tar"
+				decompress=gunzip ;;
+			*.[Tt][Bb][Zz]2)
+				base="${filename%.[Tt][Bb][Zz]2}.tar"
+				decompress=bunzip2 ;;
+			*.[Tt][Xx][Zz])
+				base="${filename%.[Tt][Xx][Zz]}.tar"
+				decompress=unxz ;;
+			*.[Ll][Zz])
+				base="${filename%.[Ll][Zz]}"
+				decompress="lzip -d" ;;
+			*.[Tt][Ll][Zz])
+				base="${filename%.[Tt][Ll][Zz]}.tar"
+				decompress="lzip -d" ;;
+			*)
+				echo "${0}: I don't know how to handle ${filename}"
+				return 0 ;;
 		esac
 		if [ -e "${base}" ]; then
 			echo "${0}: ${base} exists, refusing to decompress ..."

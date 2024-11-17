@@ -63,7 +63,7 @@ dosetgov() {
 	dolistgov
 
 	# Read a numeric choice from the keyboard.
-        read -r choice
+	read -r choice
 
 	# Exit if not a valid choice.
 	if ! [[ ${choice} =~ ^[-+]?[0-9]+$ ]]; then
@@ -126,7 +126,7 @@ elif [ "${1}" == "set" ]; then
 	dosetgov
 
 # Otherwise it's an error.  So give brief usage instructions
-else 
+else
 	echo "Usage: this utility can list or set (with root permissions) cpu governors"
 	echo "and speeds, from a list of available values.  To list available values..."
 	echo ""

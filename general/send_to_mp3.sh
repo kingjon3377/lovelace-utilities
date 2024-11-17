@@ -11,13 +11,13 @@ send_to_mp3() {
 		test -d "${MP3_PLAYER}/${file%/*}" || mkdir -p "${MP3_PLAYER}/${file%/*}"
 		test -f "${file}" || continue
 		case "${file}" in
-		*mp3) test -f "${MP3_PLAYER}/${file}" && continue; cp -i "${file}" "${MP3_PLAYER}/${file}"; continue ;;
-		*wma) base=${file%%.wma} ;;
-		*m4a) base=${file%%.m4a} ;;
-		*ogg) base=${file%%.ogg} ;;
-		*flac) base=${file%%.flac} ;;
-		*.rm) base=${file%%.rm} ;;
-		*) echo "Unhandled extension on ${file}" ; continue ;;
+			*mp3) test -f "${MP3_PLAYER}/${file}" && continue; cp -i "${file}" "${MP3_PLAYER}/${file}"; continue ;;
+			*wma) base=${file%%.wma} ;;
+			*m4a) base=${file%%.m4a} ;;
+			*ogg) base=${file%%.ogg} ;;
+			*flac) base=${file%%.flac} ;;
+			*.rm) base=${file%%.rm} ;;
+			*) echo "Unhandled extension on ${file}" ; continue ;;
 		esac
 		test -f "${MP3_PLAYER}/${base}.mp3" && continue
 #		ffmpeg -hide_banner -i "${file}" -vn -acodec mp2 "${MP3_PLAYER}/mp3/"${base}.mp3"

@@ -15,10 +15,10 @@ play_five_favorites() {
 	ORIG_PWD="${PWD}"
 	cd "${MUSIC_COLLECTION_BASE}" || return
 	usage() {
-		echo 'Usage: play_five_favorites [[--][no[-]]remove] [[--][no]xmas] [[--][no[-]]video] [COUNT]' 
+		echo 'Usage: play_five_favorites [[--][no[-]]remove] [[--][no]xmas] [[--][no[-]]video] [COUNT]'
 		echo '  Select five music files at random and play them.'
-		echo '	noremove --noremove no-remove --no-remove: Do not remove any files.' 
-		echo '	remove --remove: Ask after each file whether to remove it (default).' 
+		echo '	noremove --noremove no-remove --no-remove: Do not remove any files.'
+		echo '	remove --remove: Ask after each file whether to remove it (default).'
 		echo '	xmas --xmas christmas --christmas: Play from Christmas collection (default in Christmastide).'
 		echo '  easter --easter: Play from Easter collection.'
 		echo '	noxmas --noxmas nochristmas --nochristmas: Play from favorites (default in other seasons).'
@@ -33,7 +33,7 @@ play_five_favorites() {
 			easter | --easter) XMAS=false EASTER=true ;;
 			--noeaster | noeaster) EASTER=false ;;
 			[0-9]*) REPS=${1} ;;
-			*) usage ; return 1;;
+			*) usage ; return 1 ;;
 		esac
 		shift
 	done

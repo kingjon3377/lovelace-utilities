@@ -23,18 +23,18 @@ restore=$(shopt -p nullglob)
 shopt -s nullglob
 task_list=( "${TASK_DIR_INNER}"/* )
 if test "${#task_list[@]}" -eq 0; then
-#	echo "No tasks in directory" 1>&2
+	#	echo "No tasks in directory" 1>&2
 	${restore}
 	exit 0
 fi
 LOCK_DIR_INNER="${LOCK_DIR:-${XDG_RUNTIME_DIR:-/dev/shm}/lovelace-at-locks}"
 mkdir -p "${LOCK_DIR_INNER}"
 base_timestamp=$(date +%s)
-for file in "${task_list[@]}";do 
+for file in "${task_list[@]}";do
 	case "${file}" in
-	*.sh) file_timestamp="${file%%.sh}" ;;
-	*.template) continue ;;
-	*) echo "${file##*/}: Not a supported extension" 1>&2 ; continue ;;
+		*.sh) file_timestamp="${file%%.sh}" ;;
+		*.template) continue ;;
+		*) echo "${file##*/}: Not a supported extension" 1>&2 ; continue ;;
 	esac
 	file_timestamp="${file_timestamp##*/}"
 	file_timestamp="$(date --date="${file_timestamp}" +%s)"

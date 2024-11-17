@@ -46,8 +46,8 @@ file_stories_after() {
 			echo "Failed on ${story}" 1>&2
 			return "${curl_ret}"
 		fi
-    done
-    test "${ran_once}" = true && echo
+	done
+	test "${ran_once}" = true && echo
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

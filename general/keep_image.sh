@@ -10,7 +10,7 @@ keep_image() {
 			height=$((height + 60))
 			test "${width}" -gt 800&&width=800
 			test "${height}" -gt 600&&height=600
-			{ 
+			{
 				echo "<h2>Keep ${file}?</h2><img src=\"data:"
 				mimetype -b "${file}"
 				echo -n ";base64,"

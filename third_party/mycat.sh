@@ -1,5 +1,5 @@
 #!/bin/bash
-# sourcing-detection idea from 
+# sourcing-detection idea from
 # <http://www.linuxquestions.org/questions/prog+ramming-9/detect-bash-script-source-vs-direct-execution-685193/>
 # We leave it as is, rather than using the more portable implementation, because mycat relies on arrays, a bashism.
 # cat implementation from http://blog.eatnumber1.com/2009/05/pure-bash-cat.html

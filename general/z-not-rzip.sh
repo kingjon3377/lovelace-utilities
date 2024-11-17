@@ -11,9 +11,9 @@ z_not_rzip() {
 #			[ "${base}" != "$(basename "$filename" .tgz)" ] || \
 #			[ "${base}" != "$(basename "$filename" .tbz2)" ]; then
 	case "${filename}" in
-	*.gz | *.bz2 | *.tgz | *.tbz2)
-		echo Looks like one of my output formats, skipping ... 1>&2
-		return 0 ;;
+		*.gz | *.bz2 | *.tgz | *.tbz2)
+			echo Looks like one of my output formats, skipping ... 1>&2
+			return 0 ;;
 	esac
 	cmd="${0##*/}"
 	if [ "$(stat -c "%h" "${filename}")" -ne 1 ]; then

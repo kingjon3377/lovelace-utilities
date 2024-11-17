@@ -53,7 +53,7 @@ reduce_bitrate() {
 				echo "rm failed" 1>&2
 				return 1
 			elif test -f "${file}"; then
-			    echo "Remove new file instead?"
+				echo "Remove new file instead?"
 				rm -i "${newfile}"
 			fi ;;
 	esac

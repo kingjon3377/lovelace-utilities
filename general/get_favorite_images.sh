@@ -39,7 +39,7 @@ get_favorite_images() {
 		grep -q -x -F "$(realpath "${SOURCE_DIRECTORY}/${file}")" "${RECORD}" && continue
 		# shellcheck disable=2249
 		case "${file}" in
-		*wks|*txt|*ods) continue ;;
+			*wks|*txt|*ods) continue ;;
 		esac
 		"$KEEP_IMAGE" "${file}"
 		test -f "${file}" || continue

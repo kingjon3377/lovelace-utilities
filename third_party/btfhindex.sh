@@ -22,24 +22,24 @@ to_roman() {
 		out=""
 
 		case $N in
-		0)      out+="" ;;
-		[123])  while [[ $N -gt 0 ]]; do
-				out+="$one"
-				N=$((N-1))
-			done ;;
-		4)      out+="$one$five"        ;;
-		5)      out+="$five"    ;;
-		[678])  out+="$five"
-			N=$((N-5))
-			while [[ $N -gt 0 ]]; do
-				out+="$one"
-				N=$((N-1))
-			done ;;
-		9)      while [[ $N -lt 10 ]]; do
-				out+="$one"
-				N=$((N+1))
-			done
-			out+="$ten" ;;
+			0)      out+="" ;;
+			[123])  while [[ $N -gt 0 ]]; do
+					out+="$one"
+					N=$((N-1))
+				done ;;
+			4)      out+="$one$five"        ;;
+			5)      out+="$five"    ;;
+			[678])  out+="$five"
+				N=$((N-5))
+				while [[ $N -gt 0 ]]; do
+					out+="$one"
+					N=$((N-1))
+				done ;;
+			9)      while [[ $N -lt 10 ]]; do
+					out+="$one"
+					N=$((N+1))
+				done
+				out+="$ten" ;;
 		esac
 		echo "$out"
 	}
@@ -47,15 +47,15 @@ to_roman() {
 	while [[ $len -gt 0  ]]; do
 		num=${input:0:1}
 		case $len in
-		1) output+="$(roman_val "$num" I V X)" ;;
-		2) output+="$(roman_val "$num" X L C)" ;;
-		3) output+="$(roman_val "$num" C D M)" ;;
-		*) # 10'000 gets a line above, 100'000 gets a line on the left.. how to?
-			num=${input:0:(-3)}
-			while [[ $num -gt 0 ]]; do
-				output+="M"
-				num=$((num-1))
-			done ;;
+			1) output+="$(roman_val "$num" I V X)" ;;
+			2) output+="$(roman_val "$num" X L C)" ;;
+			3) output+="$(roman_val "$num" C D M)" ;;
+			*) # 10'000 gets a line above, 100'000 gets a line on the left.. how to?
+				num=${input:0:(-3)}
+				while [[ $num -gt 0 ]]; do
+					output+="M"
+					num=$((num-1))
+				done ;;
 		esac
 		input=${input:1} ; len=${#input}
 	done
@@ -90,9 +90,9 @@ chapter_found() {
 		echo "<h2>Table of Contents</h2>"
 		echo "<p>"
 		started=1
-		fi
-		chapter_name="${2//_/ }"
-		echo "<a href="'"'"${1}"'"'">${chapter_name}</a><br/>"
+	fi
+	chapter_name="${2//_/ }"
+	echo "<a href="'"'"${1}"'"'">${chapter_name}</a><br/>"
 }
 
 handle_chapter() {
@@ -144,7 +144,7 @@ generate_html() {
 	fi
 }
 
- # Main program
+# Main program
 if [ -z "$1" ]; then
 	generate_html > story.html
 	if [ -n "${title}" ]; then
