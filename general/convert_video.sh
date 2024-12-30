@@ -4,6 +4,16 @@ cv_called_path="${BASH_SOURCE[0]}"
 . "${cv_called_path%/*}/lovelace-utilities-source-config.sh" || return 1
 # shellcheck source=./play_possibly_remove.sh
 . "${cv_called_path%/*}/play_possibly_remove.sh"
+get_codec() {
+    if type midentify > /dev/null 2>&1; then
+        midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//'
+    elif type mediainfo > /dev/null 2>&1;then
+        mediainfo --Output='Audio;%CodecID%' "${1}"
+    elif type ffprobe > /dev/null 2>&1; then
+        # TODO: Breaks if any tags include 'Audio:'
+        ffprobe "${1}" 2>&1 | grep Audio | sed 's@^.*Audio: \([^,]*\),.*$@\1@'
+    fi
+}
 convert_video() {
 	if [ $# -gt 1 ]; then
 		for arg in "$@";do
@@ -15,12 +25,12 @@ convert_video() {
 		orig="${1}"
 		case "${orig}" in
 			*flv) BASE="${1%.flv}"
-				codec=$(midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//')
+				codec=$(get_codec "${orig}")
 				case "${codec}" in
-					ffopus) DEST="${BASE}.opus" ;;
-					ffvorbis) DEST="${BASE}.ogg" ;;
-					ffaac) DEST="${BASE}.m4a" ;;
-					mpg123) DEST="${BASE}.mp3" ;;
+					ffopus|A_OPUS|opus) DEST="${BASE}.opus" ;;
+					ffvorbis|A_VORBIS|vorbis) DEST="${BASE}.ogg" ;;
+					ffaac|mp4a-40-*|aac) DEST="${BASE}.m4a" ;;
+					mpg123|mp3) DEST="${BASE}.mp3" ;;
 					*) echo "Unknown codec ${codec} in flv"; return 3 ;;
 				esac ;;
 			*mp4) BASE="${1%.mp4}" DEST="${BASE}.m4a" ;;
@@ -28,12 +38,12 @@ convert_video() {
 			*3gpp) BASE="${1%.3gpp}" DEST="${BASE}.m4a" ;;
 			*3gp) BASE="${1%.3gp}" DEST="${BASE}.m4a" ;;
 			*mkv) BASE="${1%.mkv}"
-				codec=$(midentify "${1}" | grep AUDIO_CODEC | sed 's/^ID_AUDIO_CODEC=//')
+				codec=$(get_codec "${orig}")
 				case "${codec}" in
-					ffopus) DEST="${BASE}.opus" ;;
-					ffvorbis) DEST="${BASE}.ogg" ;;
-					ffaac) DEST="${BASE}.m4a" ;;
-					mpg123) DEST="${BASE}.mp3" ;;
+					ffopus|A_OPUS|opus) DEST="${BASE}.opus" ;;
+					ffvorbis|A_VORBIS|vorbis) DEST="${BASE}.ogg" ;;
+					ffaac|mp4a-40-*|aac) DEST="${BASE}.m4a" ;;
+					mpg123|mp3) DEST="${BASE}.mp3" ;;
 					*) echo "Unknown codec ${codec} in mkv"; return 3 ;;
 				esac ;;
 			*) echo "Unknown extension"; return 2 ;;
