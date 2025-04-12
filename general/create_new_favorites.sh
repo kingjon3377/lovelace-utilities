@@ -17,7 +17,11 @@ create_new_favorites() {
 		MUSIC_COLLECTION=${MUSIC_COLLECTION:-/home/kingjon/music}
 		MUSIC_ROOT_DIRS=( sorted )
 		MUSIC_FAVORITES_DIRS=( favorites xmas easter )
-		PLAYER_COMMAND=${PLAYER_COMMAND:-mplayer}
+		case "$(declare -p -- PLAYER_COMMAND 2>/dev/null)" in
+		"declare -a "*) : ;;
+		"declare "*) PLAYER_COMMAND=( "${PLAYER_COMMAND}" ) ;;
+		"") PLAYER_COMMAND=( mplayer ) ;;
+		esac
 	fi
 	if ! pushd "${MUSIC_COLLECTION}" > /dev/null; then
 		echo "Couldn't enter MUSIC_COLLECTION root directory" 1>&2
