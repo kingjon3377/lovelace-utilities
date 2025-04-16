@@ -235,8 +235,8 @@ class CleanupKindleArguments:
         return False
 
     def matches_general_whitelist(self, archive):
-        """Whether any (HTML, NCX, or OPF) file in the archive matches any pattern in the
-           "general whitelist"."""
+        """Whether any (HTML, NCX, or OPF) file in the archive matches any
+           pattern in the "general whitelist"."""
         with zipfile.ZipFile(archive) as f:
             for file in f.infolist():
                 if not file.is_dir():
