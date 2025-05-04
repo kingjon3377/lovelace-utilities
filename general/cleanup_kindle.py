@@ -272,6 +272,8 @@ class FavoritesCollection:
                 decoded = unidecode(str(line_path.name))
                 decoded = re.sub('[:\\?*]', '', decoded)
                 self._main_dict[decoded] = line_path
+                # Just in case the Kindle has the Unicode after all ...
+                self._main_dict[str(line_path.name)] = line_path
                 self._path_dict[str(line_path)] = decoded
                 count += 1
         debug_print(f"Number of favorites loaded: {count}")
