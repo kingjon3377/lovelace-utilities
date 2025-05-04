@@ -1,12 +1,33 @@
 #!/bin/bash
 # We use a few bashisms below, according to shellcheck (type, [[ =~ ]], etc.)
 
+# shellcheck source=./lovelace-utilities-source-config.sh
+. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
+
+# With Pivotal Tracker now having shut down, the functions in this file now use the
+# Push library <https://github.com/vaeth/push/> to save the input in a file (by
+# default under ${HOME}/todo) for later entry into a successor system.
+
+PUSH_LOCATION=${PUSH_LOCATION:-/usr/share/push/push.sh}
+
+test -f "${PUSH_LOCATION}" || PUSH_LOCATION="push.sh"
+
+if PUSH_INIT=$("${PUSH_LOCATION}" 2>/dev/null);then
+	eval "${PUSH_INIT}"
+	PUSH_INITIALIZED=true
+else
+	echo "push.sh not on PATH, or PUSH_LOCATION not set" >&2
+	PUSH_INITIALIZED=false
+fi
+
 # Unlike most scripts in this collection, we don't define reasonable defaults
 # for the configuration variables: the function project_name_to_id defaults to
 # an alias for true, and TRACKER_TOKEN defaults to invalidtoken
-# shellcheck source=./lovelace-utilities-source-config.sh
-. "${BASH_SOURCE[0]%/*}/lovelace-utilities-source-config.sh"
 submit_to_tracker() {
+	if test "${PUSH_INITIALIZED:-false}" != true; then
+		echo "Push library not detected, and Tracker is gone ..." >&2
+		return 5
+	fi
 	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
@@ -23,6 +44,12 @@ submit_to_tracker() {
 	if test $# -lt 5; then
 		warn_echo "Usage: submit_to_tracker [--quiet] project type points tags name [state] [desc] [tasks ...]"
 		return 1
+	fi
+	if test "${TRACKER_SOMEHOW_UP:-false}" != true; then
+		Push -c v submit_to_tracker "$@"
+		# shellcheck disable=2154
+		printf '%s\n' "$v" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+		return 0
 	fi
 	if ! type project_name_to_id > /dev/null 2>&1; then
 		info_echo "Define project_name_to_id function in environment to use symbolic names"
@@ -102,6 +129,10 @@ submit_to_tracker() {
 # Gentoo Prefix, or some other way and use your PATH or an alias so that this
 # sees that rather than the MacOS default /bin/date.
 submit_tracker_release() {
+	if test "${PUSH_INITIALIZED:-false}" != true; then
+		echo "Push library not detected, and Tracker is gone ..." >&2
+		return 5
+	fi
 	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
@@ -118,6 +149,12 @@ submit_tracker_release() {
 	if test $# -lt 4; then
 		warn_echo "Usage: submit_tracker_release project tags name due_date [state] [desc]"
 		return 1
+	fi
+	if test "${TRACKER_SOMEHOW_UP:-false}" != true; then
+		Push -c v submit_tracker_release "$@"
+		# shellcheck disable=2154
+		printf '%s\n' "$v" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+		return 0
 	fi
 	local PROJECT=${PROJECT:-${1}}
 	if ! type project_name_to_id > /dev/null 2>&1; then
