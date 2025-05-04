@@ -315,6 +315,8 @@ def is_expected_file(file):
     if re.fullmatch("Kindle.User.*", file.name):
         debug_print("User Guide")
         return False
+    if file.name == '.cache':
+        return False
     if file.name.endswith(".azw3") or file.name.endswith(".sdr"):
         return True
     print(f"Unexpected file {file}")
