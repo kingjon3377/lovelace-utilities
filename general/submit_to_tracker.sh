@@ -12,7 +12,7 @@ PUSH_LOCATION=${PUSH_LOCATION:-/usr/share/push/push.sh}
 
 test -f "${PUSH_LOCATION}" || PUSH_LOCATION="push.sh"
 
-if PUSH_INIT=$("${PUSH_LOCATION}" 2>/dev/null);then
+if PUSH_INIT=$(cat "${PUSH_LOCATION}" 2>/dev/null);then
 	eval "${PUSH_INIT}"
 	PUSH_INITIALIZED=true
 else
