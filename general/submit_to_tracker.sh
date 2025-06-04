@@ -31,6 +31,7 @@ submit_to_tracker() {
 	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
+	TRACKER_ENDPOINT=${TRACKER_ENDPOINT:-https://www.pivotaltracker.com/services/v5/}
 	info_echo() {
 		test "${STT_QUIET:-false}" = true || echo "$@"
 	}
@@ -102,7 +103,7 @@ submit_to_tracker() {
 #	echo "${json}" | jq '.'
 	submit_tracker_json() {
 		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
-			-X POST -d "${1}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories"
+			-X POST -d "${1}" "${TRACKER_ENDPOINT}/projects/${PROJECT}/stories"
 	}
 	if type jq > /dev/null; then
 		ret_json=$(submit_tracker_json "${json}" 2>/dev/null)
@@ -177,7 +178,7 @@ submit_tracker_release() {
 	json="{ \"story_type\":\"release\", \"name\":\"${STORY_NAME}\"${TAGS}${STATE}${DUE}${DESC} }"
 	submit_tracker_json() {
 		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
-			-X POST -d "${json}" "https://www.pivotaltracker.com/services/v5/projects/${PROJECT}/stories"
+			-X POST -d "${json}" "${TRACKER_ENDPOINT}/projects/${PROJECT}/stories"
 	}
 	if type jq > /dev/null; then
 		id=$(submit_tracker_json "${json}" 2>/dev/null | jq -e '.id')
