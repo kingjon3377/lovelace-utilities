@@ -152,7 +152,7 @@ class CheckedFileCache:
                 for line in f:
                     cache.add(line.rstrip())
             self.cache[collection] = cache
-        return str(file.resolve()) in cache
+        return str(os.path.relpath(file.resolve(), self.music_collection)) in cache
 
     def add_to_cache(self, collection, file):
         """Mark the given file as having been checked for the given
@@ -168,7 +168,7 @@ class CheckedFileCache:
             self.cache[collection] = cache
         if not str(file.resolve()) in cache:
             with open(checked_file, 'a', encoding='utf-8') as f:
-                f.write(str(file.resolve()) + "\n")
+                f.write(str(os.path.relpath(file.resolve(), self.music_collection)) + "\n")
 
 
 def play_file(player, file):

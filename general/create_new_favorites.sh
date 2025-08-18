@@ -37,7 +37,7 @@ create_new_favorites() {
 	while read -r -u 3 file; do
 		local missingfavorites=()
 		for collection in "${MUSIC_FAVORITES_DIRS[@]}";do
-			if ! grep -q -x -F "${MUSIC_COLLECTION}/${file}" "checked-${collection}.txt" && \
+			if ! grep -q -x -F "${file}" "checked-${collection}.txt" && \
 					! test -f "${MUSIC_COLLECTION}/${collection}/${file}"; then
 				missingfavorites+=("${collection}")
 			fi
@@ -56,7 +56,7 @@ create_new_favorites() {
 					echo "Failed to leave ${collection} subdirectory. Aborting!" 1>&2
 					return 4
 				fi
-				echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
+				echo "${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
 				continue
 			fi
 			response=$(grabchars -cyn -n1 -b -L -f -t10 -dn \
@@ -75,7 +75,7 @@ create_new_favorites() {
 				echo "Failed to leave ${collection} subdirectory. Aborting!" 1>&2
 				return 3
 			fi
-			echo "${MUSIC_COLLECTION}/${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
+			echo "${file}" >> "${MUSIC_COLLECTION}/checked-${collection}.txt"
 		done
 		response=$(grabchars -cyn -n1 -b -L -f -t10 -dy -q"Keep going? ")
 		echo
