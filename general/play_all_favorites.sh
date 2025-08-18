@@ -47,7 +47,7 @@ play_all_favorites() {
 		count=$(echo "${file_list}" | wc -l)
 		curr=0
 		for a in ${file_list}; do
-			echo "File ${curr} / ${count}"
+			echo "File ${curr} / ${count}: ${a}"
 			${PLAYER_COMMAND} "${a}" && rm -i "${a}"
 			curr=$((curr + 1))
 		done
