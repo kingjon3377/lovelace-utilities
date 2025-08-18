@@ -27,6 +27,7 @@ import tomllib
 import subprocess
 from xdg import BaseDirectory
 from blessed import Terminal
+import sys
 
 
 class DebugPrinter:
@@ -214,6 +215,9 @@ def main():
     config = ManageFavoritesArguments()
     cfg_file = BaseDirectory.load_first_config(
         "lovelace-utilities/config.toml")
+    if not cfg_file and sys.platform == 'darwin':
+        cfg_root = Path.home() / 'Library' / 'Application Support'
+        cfg_file = cfg_root / 'lovelace-utilities' / 'config.toml'
     config.load_from_file(cfg_file)
     config.load_from_environ()
     music_collection = Path(config.music_collection)
