@@ -440,8 +440,8 @@ def main():
     debug_print("Finished pass through files on Kindle")
     debug_print("About to start going through favorites list")
 
-    # TODO: Once on Python 3.12, pass "delete=(not DEBUG_PRINT.debug)" as param
-    with tempfile.TemporaryDirectory() as tmpdir:
+    verbose_delete = not DEBUG_PRINT.debug
+    with tempfile.TemporaryDirectory(delete=verbose_delete) as tmpdir:
         check_favorites_files(tmpdir, config, favorites, kindle_documents_dir)
 
 
