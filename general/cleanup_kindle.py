@@ -369,7 +369,6 @@ def check_kindle_file(file, favorites, kindle_documents_dir, already_handled):
 def check_mobi_dates(markup_dir, config, target, orig, dates_in_epub):
     """Get dates from an unpacked Kindle file and compare with those from the
        EPUB."""
-    global ANY_PRINTED
     dates_in_azw = []
     for file in markup_dir.rglob("*.*htm*"):
         with open(file) as f:
