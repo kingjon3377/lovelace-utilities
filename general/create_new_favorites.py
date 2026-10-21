@@ -107,10 +107,11 @@ class ManageFavoritesArguments:
         self.music_collection = Path.home().glob("music/")
         self.music_root_dirs = ["sorted"]
         self.music_favorites_dirs = ["favorites"]
-        self.player_command = "/usr/bin/mplayer"
+        self.player_command = ["/usr/bin/mplayer"]
 
-    _CONFIG_STRING_KEYS = ["MUSIC_COLLECTION", "PLAYER_COMMAND"]
+    _CONFIG_STRING_KEYS = ["MUSIC_COLLECTION"]
     _CONFIG_ARRAY_KEYS = ["MUSIC_ROOT_DIRS", "MUSIC_FAVORITES_DIRS"]
+    _CONFIG_STR_OR_ARRAY_KEYS = ["PLAYER_COMMAND"]
 
     def load_from_file(self, config_file):
         """Load config from a TOML file."""
@@ -120,9 +121,16 @@ class ManageFavoritesArguments:
                 upper_k = key.upper()
                 str_keys = ManageFavoritesArguments._CONFIG_STRING_KEYS
                 arr_keys = ManageFavoritesArguments._CONFIG_ARRAY_KEYS
+                str_or_arr_keys = ManageFavoritesArguments._CONFIG_STR_OR_ARRAY_KEYS
                 if (upper_k in str_keys or upper_k in arr_keys):
                     setattr(self, key.lower(), config[key])
                     debug_print(f"In config file, {key} is {config[key]}")
+                elif (upper_k in str_or_arr_keys):
+                    config_value = config[key]
+                    if (isinstance(config_value, str)):
+                        setattr(self, key.lower(), [config_value])
+                    else:
+                        setattr(self, key.lower(), config_value);
 
     def load_from_environ(self):
         """Load config (only keys expected to be single strings) from the
@@ -174,7 +182,7 @@ class CheckedFileCache:
 
 def play_file(player, file):
     """Play the give file using the given player."""
-    subprocess.run([player, file], check=False)
+    subprocess.run([*player, file], check=False)
 
 
 def check_file(config, music_favorites_dirs, checked_file_cache, folder, file):
