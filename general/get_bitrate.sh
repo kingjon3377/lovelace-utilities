@@ -60,5 +60,5 @@ for file in "$@";do
 	bitrate=$(mediainfo --Output='Audio;%BitRate/String%' "${uncompressed_name}")
 	test -z "${bitrate}" && bitrate=$(mediainfo --Output='Audio;%SamplingRate/String%' "${uncompressed_name}")
 	echo "${compressed_size} ${uncompressed_size} ${bitrate}"
-	rm -i "${uncompressed_name}"
+	rm "${uncompressed_name}"
 done
