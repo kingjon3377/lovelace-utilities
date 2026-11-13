@@ -30,7 +30,7 @@ for file in "$@";do
 			uncompressed_name="${main_base%%.gz}"
 			decompress=( gunzip )
 			;;
-		*.mp3|*.ogg|*.opus|*.m4a)
+		*.mp3|*.ogg|*.opus|*.m4a|*.spx)
 			uncompressed_name="${main_base}"
 			decompress=( : )
 			;;
