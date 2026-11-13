@@ -9,6 +9,11 @@ for file in "$@";do
 		fi
 	fi
 	main_base="${file##*/}"
+	if test "${main_base}" = "${file}"; then
+		echo "Run this script from the staging area!" 1>&2
+		echo "Aborting to prevent data loss" 1>&2
+		exit 1
+	fi
 	case "${main_base}" in
 		*.lrz)
 			uncompressed_name="${main_base%%.lrz}"
