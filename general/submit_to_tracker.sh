@@ -46,11 +46,14 @@ submit_to_tracker() {
 		warn_echo "Usage: submit_to_tracker [--quiet] project type points tags name [state] [desc] [tasks ...]"
 		return 1
 	fi
-	if test "${TRACKER_SOMEHOW_UP:-false}" != true; then
+	local all_args=
+	if [[ "${TRACKER_ENDPOINT}" == *pivotaltracker.com* ]] && test "${TRACKER_SOMEHOW_UP:-false}" != true; then
 		Push -c v submit_to_tracker "$@"
 		# shellcheck disable=2154
 		printf '%s\n' "$v" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
 		return 0
+	elif test "${STT_LOG_REQUESTS:-false}" = true;then
+		Push -c all_args "$@"
 	fi
 	if ! type project_name_to_id > /dev/null 2>&1; then
 		info_echo "Define project_name_to_id function in environment to use symbolic names"
@@ -105,6 +108,16 @@ submit_to_tracker() {
 		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
 			-X POST -d "${1}" "${TRACKER_ENDPOINT}/projects/${PROJECT}/stories"
 	}
+	local delay
+	if [[ "${STT_DELAY_PER_REQUEST}" =~ ^[0-9]+$ ]]; then
+		delay="${STT_DELAY_PER_REQUEST}"
+	elif test -z "${STT_DELAY_PER_REQUEST}"; then
+		echo "DELAY_PER_REQUEST not provided, defaulting to 3 seconds" 1>&2
+		delay=3
+	else
+		echo "DELAY_PER_REQUEST not a number, defaulting to 4 seconds" 1>&2
+		delay=4
+	fi
 	if type jq > /dev/null; then
 		ret_json=$(submit_tracker_json "${json}" 2>/dev/null)
 		id=$(echo "${ret_json}" | jq -e '.id')
@@ -116,12 +129,25 @@ submit_to_tracker() {
 				info_echo; info_echo "They replied:"
 				echo "${ret_json}" | jq '.'
 			fi
+			sleep "${delay}"
 			return 4
 		else
 			info_echo "Story is now ID #${id}"
+			# shellcheck disable=2154
+			test -n "${all_args}" && printf '#%s\n' "$all_args" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+			sleep "${delay}"
 		fi
 	else
-		submit_tracker_json "${json}" || return 4
+		if submit_tracker_json "${json}"; then
+			# shellcheck disable=2154
+			test -n "${all_args}" && printf '#%s\n' "$all_args" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+			sleep "${delay}"
+		else
+			# shellcheck disable=2154
+			test -n "${all_args}" && printf '%s\n' "$all_args" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+			sleep "${delay}"
+			return 4
+		fi
 	fi
 }
 
@@ -137,6 +163,7 @@ submit_tracker_release() {
 	local PROVIDED_TRACKER_TOKEN=${TRACKER_TOKEN}
 	lovelace_utilities_source_config
 	TRACKER_TOKEN=${PROVIDED_TRACKER_TOKEN:-${TRACKER_TOKEN}}
+	TRACKER_ENDPOINT=${TRACKER_ENDPOINT:-https://www.pivotaltracker.com/services/v5/}
 	info_echo() {
 		test "${STT_QUIET:-false}" = true || echo "$@"
 	}
@@ -151,11 +178,14 @@ submit_tracker_release() {
 		warn_echo "Usage: submit_tracker_release project tags name due_date [state] [desc]"
 		return 1
 	fi
-	if test "${TRACKER_SOMEHOW_UP:-false}" != true; then
+	local all_args=
+	if [[ "${TRACKER_ENDPOINT}" == *pivotaltracker.com* ]] && test "${TRACKER_SOMEHOW_UP:-false}" != true; then
 		Push -c v submit_tracker_release "$@"
 		# shellcheck disable=2154
 		printf '%s\n' "$v" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
 		return 0
+	elif test "${STT_LOG_REQUESTS:-false}" = true;then
+		Push -c all_args "$@"
 	fi
 	local PROJECT=${PROJECT:-${1}}
 	if ! type project_name_to_id > /dev/null 2>&1; then
@@ -180,15 +210,38 @@ submit_tracker_release() {
 		curl -H "X-TrackerToken: ${TRACKER_TOKEN:-invalidtoken}" -H "Content-type: application/json" \
 			-X POST -d "${json}" "${TRACKER_ENDPOINT}/projects/${PROJECT}/stories"
 	}
+	local delay
+	if [[ "${STT_DELAY_PER_REQUEST}" =~ ^[0-9]+$ ]]; then
+		delay="${STT_DELAY_PER_REQUEST}"
+	elif test -z "${STT_DELAY_PER_REQUEST}"; then
+		echo "DELAY_PER_REQUEST not provided, defaulting to 3 seconds" 1>&2
+		delay=3
+	else
+		echo "DELAY_PER_REQUEST not a number, defaulting to 4 seconds" 1>&2
+		delay=4
+	fi
 	if type jq > /dev/null; then
 		id=$(submit_tracker_json "${json}" 2>/dev/null | jq -e '.id')
 		if test $? != 0 || test "${id}" = null; then
 			warn_echo "Adding release apparently failed"
+			sleep "${delay}"
 			return 4
 		else
+			sleep "${delay}"
 			info_echo "Release is now ID #${id}"
+			# shellcheck disable=2154
+			test -n "${all_args}" && printf '#%s\n' "$all_args" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
 		fi
 	else
-		submit_tracker_json "${json}" || return 4
+		if submit_tracker_json "${json}";then
+			# shellcheck disable=2154
+			test -n "${all_args}" && printf '#%s\n' "$all_args" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+			sleep "${delay}"
+		else
+			# shellcheck disable=2154
+			test -n "${all_args}" && printf '%s\n' "$all_args" >> "${TRACKER_BACKUP_FILE:-${HOME}/todo/submitted_tasks.sh}"
+			sleep "${delay}"
+			return 4
+		fi
 	fi
 }
